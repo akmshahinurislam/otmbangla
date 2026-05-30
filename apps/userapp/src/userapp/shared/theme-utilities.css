@@ -1,0 +1,14 @@
+.bg-primary-bg { background-color: var(--primary-background); }
+.bg-secondary-bg { background-color: var(--secondary-background); }
+.bg-tertiary-surface { background-color: var(--tertiary-surface); }
+.text-main { color: var(--main-text); }
+.text-secondary { color: var(--secondary-text); }
+.text-muted { color: var(--muted-text); }
+.border-subtle { border-color: var(--border-subtle); }
+.bg-hover-surface { background-color: var(--hover-surface); }
+.bg-accent-purple { background-color: var(--accent-purple); }
+.bg-accent-purple-hover { background-color: var(--accent-purple-hover); }
+.bg-accent-blue { background-color: var(--accent-blue); }
+.bg-accent-green { background-color: var(--accent-green); }
+.bg-accent-pink { background-color: var(--accent-pink); }
+.bg-accent-orange { background-color: var(--accent-orange); }

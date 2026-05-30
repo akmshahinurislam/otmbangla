@@ -1,0 +1,3712 @@
+{
+  "summary": {
+    "total": 100,
+    "passed": 26,
+    "failed": 74
+  },
+  "results": [
+    {
+      "id": 1,
+      "query": "Show me tenders in Savar.",
+      "expected": [
+        "T-987412"
+      ],
+      "actual": [
+        "T-987412"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:31:54.850Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Show me tenders in Savar.",
+            "extractedParams": {
+              "districts": [
+                "Savar"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:31:54.850Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Savar",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:31:54.909Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:31:56.975Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-987412",
+                "title": "Construction of 4-Storied Upazila Parishad Administrative Building & Hall Room"
+              }
+            ],
+            "replyLength": 120
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "query": "Are there any notices in Cox's Bazar?",
+      "expected": [
+        "T-201569",
+        "T-102938"
+      ],
+      "actual": [
+        "T-201569",
+        "T-102938"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:31:59.207Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Are there any notices in Cox's Bazar?",
+            "extractedParams": {
+              "districts": [
+                "Cox's Bazar"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:31:59.207Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "(cox|teknaf)",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:31:59.263Z",
+          "details": {
+            "matchCount": 2,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:00.764Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-201569",
+                "title": "Installation of Smart Solar LED Street Lighting & Hybrid Pole Substations"
+              },
+              {
+                "id": "T-102938",
+                "title": "Supply and Installation of High-Yield deep Tube-Wells & Water Pipelines"
+              }
+            ],
+            "replyLength": 81
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "query": "Find all tenders from Sylhet district.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [
+        "T-365214"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:02.384Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Find all tenders from Sylhet district.",
+            "extractedParams": {
+              "districts": [
+                "Sylhet"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:02.384Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Sylhet",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:02.438Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:03.835Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-365214",
+                "title": "Supply and Delivery of Essential Drugs & Hospital Medical Consumables"
+              }
+            ],
+            "replyLength": 169
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "query": "Any projects in Khulna?",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [
+        "T-115222"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:05.088Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Any projects in Khulna?",
+            "extractedParams": {
+              "districts": [
+                "Khulna"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:05.088Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Khulna",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:05.150Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:06.251Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-115222",
+                "title": "Corrigendum: Maintenance & Rehabilitation of 12.5km RCC Road from Jashore to Magura"
+              }
+            ],
+            "replyLength": 73
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "query": "Tenders in Sunamganj.",
+      "expected": [
+        "T-448210"
+      ],
+      "actual": [
+        "T-448210"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:07.802Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Tenders in Sunamganj.",
+            "extractedParams": {
+              "districts": [
+                "Sunamganj"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:07.802Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Sunamganj",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:07.856Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:09.736Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-448210",
+                "title": "Construction of 2x30m Span PSC Girder Bridge over local channels"
+              }
+            ],
+            "replyLength": 138
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "query": "Bagerhat area er notice list dao.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [
+        "T-609214"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:11.141Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Bagerhat area er notice list dao.",
+            "extractedParams": {
+              "districts": [
+                "Bagerhat"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:11.142Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Bagerhat",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:11.212Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:12.584Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-609214",
+                "title": "Supply of Heavy Duty Electrical Transformers & Smart PFI Capacitors"
+              }
+            ],
+            "replyLength": 159
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "query": "Teknaf er notice gula dekhaw.",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [
+        "T-201569",
+        "T-102938"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:14.200Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Teknaf er notice gula dekhaw.",
+            "extractedParams": {
+              "districts": [
+                "Cox's Bazar"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:14.200Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "(cox|teknaf)",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:14.254Z",
+          "details": {
+            "matchCount": 2,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:16.106Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-201569",
+                "title": "Installation of Smart Solar LED Street Lighting & Hybrid Pole Substations"
+              },
+              {
+                "id": "T-102938",
+                "title": "Supply and Installation of High-Yield deep Tube-Wells & Water Pipelines"
+              }
+            ],
+            "replyLength": 68
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "query": "Dhaka district details tender.",
+      "expected": [
+        "T-852140",
+        "T-741029"
+      ],
+      "actual": [
+        "T-852140",
+        "T-741029",
+        "T-1284531",
+        "T-1284831",
+        "T-1284882",
+        "T-1284880",
+        "T-1284881",
+        "T-1284817",
+        "T-1284816",
+        "T-1284818"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:17.599Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Dhaka district details tender.",
+            "extractedParams": {
+              "districts": [
+                "Dhaka"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:17.599Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Dhaka",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:17.667Z",
+          "details": {
+            "matchCount": 10,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:18.473Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-852140",
+                "title": "Supply, Installation & Integration of Enterprise Server & Networking Solutions"
+              },
+              {
+                "id": "T-741029",
+                "title": "Development of Multi-Tenant Cloud ERP & Smart Citizen Portal Mobile App"
+              },
+              {
+                "id": "T-1284531",
+                "title": "Comprehensive Maintenance Contract (CMC) of EDS Machine (Brand-Leidos, Model-MV3D, Serial No-3D20167) for 01(One) year CMC at HSIA, Dhaka"
+              },
+              {
+                "id": "T-1284831",
+                "title": "Ancillary electrification works including mitigation of inadequate illumination at the rear (South side) of the Ministry of Defence Main Building and other strategic locations."
+              },
+              {
+                "id": "T-1284882",
+                "title": "HED/DCD/GOB-HS/2025-26/95\nRepair, renovation & remodeling works of existing common toilet blocks including conversion into separate male & female toilets from 2nd floor to 5th floor of DNCC Dedicated Covid-19 Hospital at Mohakhali, Dhaka."
+              },
+              {
+                "id": "T-1284880",
+                "title": "HED/DCD/GOB-HS/2025-26/93\n\nEmergency Repair and Maintenance Works of Central Air Conditioning System of ICU 4, 5, 6 (Replacement of compressor, Leak check, Leak repairs, ICU 7, 8, 9 (Indoor unit master servicing, Replacement of drain pani and VIP Cabin 5, 7 (Replacement of thermostat) at DNCC Dedicated Covid-19 Hospital, Mohakhali, Dhaka."
+              },
+              {
+                "id": "T-1284881",
+                "title": "HED/DCD/GOB-HS/2025-26/94\n\nRepair, Maintenance and Replacement of Hepa Filter Works of Central Air Conditioning System at DNCC Dedicated Covid-19 Hospital, Mohakhali, Dhaka."
+              },
+              {
+                "id": "T-1284817",
+                "title": "Repair/renovation work of the government residence of the Additional Inspector General of Prisons (Administration) of Department of Prisons"
+              },
+              {
+                "id": "T-1284816",
+                "title": "Necessary work including false ceilings, floor tiles, stair tiles, collapsible gates in various places from the ground floor to the 11th floor of the 12 storied building of the Land Administration Training Center"
+              },
+              {
+                "id": "T-1284818",
+                "title": "Installation of outdoor unit of air conditioning equipment outside the dormitory building and necessary work including installation of steel structure railings for risk-free servicing and maintenance at NAPD dormitory building"
+              }
+            ],
+            "replyLength": 69
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "query": "Chattogram local areas tender notices.",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [
+        "T-541298",
+        "T-1275550",
+        "T-1275542",
+        "T-1275543",
+        "T-1283801",
+        "T-1215021",
+        "T-1284204",
+        "T-1267830",
+        "Tender ID-1275550",
+        "Tender ID-1275542"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:19.954Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Chattogram local areas tender notices.",
+            "extractedParams": {
+              "districts": [
+                "Chattogram"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": [
+                "local",
+                "areas",
+                "tender"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:19.954Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "ch(a|i)t",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:20.012Z",
+          "details": {
+            "matchCount": 10,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:20.891Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-541298",
+                "title": "Design, Supply, Testing & Commissioning of 33/11KV Sub-Station Systems"
+              },
+              {
+                "id": "T-1275550",
+                "title": "Renewal/repair of Tata Dump Truck No. 06827(Model-1109) engaged in garbage disposal works under Chattogram City Corporation including vehicles body,cabin,denting,painting and outfitting etc."
+              },
+              {
+                "id": "T-1275542",
+                "title": "Supply/repair of various parts of 05 Nos. of vehicles engaged in garbage removal work under the jurisdiction of Chittagong City Corporation."
+              },
+              {
+                "id": "T-1275543",
+                "title": "Supply/repair of various parts of Five (05) Nos. of vehicles engaged in garbage removal work under the jurisdiction of Chittagong City Corporation."
+              },
+              {
+                "id": "T-1283801",
+                "title": "Procurement of Office Equipment for Chittagong Medical University."
+              },
+              {
+                "id": "T-1215021",
+                "title": "Procurement of Electrical Items for the Fiscal Year for Chittagong Medical University Offices"
+              },
+              {
+                "id": "T-1284204",
+                "title": "OTM-184/CUCE-2790/SADP-R/2025-26\nConstruction work for Comfort zone on Lake side of Faculty of Science at the University of Chittagong"
+              },
+              {
+                "id": "T-1267830",
+                "title": "OTM-179/CUCE/CS/Press/G-2/2025-26\nAnnual (2025-26) Required Materials of Chittagong University Press at University of Chittagong."
+              },
+              {
+                "id": "Tender ID-1275550",
+                "title": "Renewal/repair of Tata Dump Truck No. 06827(Model-1109) engaged in garbage disposal works under Chattogram City Corporation including vehicles body,cabin,denting,painting and outfitting etc."
+              },
+              {
+                "id": "Tender ID-1275542",
+                "title": "Supply/repair of various parts of 05 Nos. of vehicles engaged in garbage removal work under the jurisdiction of Chittagong City Corporation."
+              }
+            ],
+            "replyLength": 81
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "query": "Is there anything in Magura or Jashore or Khulna?",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [
+        "T-115222"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:22.918Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Is there anything in Magura or Jashore or Khulna?",
+            "extractedParams": {
+              "districts": [
+                "Jashore",
+                "Khulna"
+              ],
+              "organizations": [],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:22.919Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Jashore",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "district": {
+                        "$regex": "Khulna",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:22.976Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:25.009Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-115222",
+                "title": "Corrigendum: Maintenance & Rehabilitation of 12.5km RCC Road from Jashore to Magura"
+              }
+            ],
+            "replyLength": 168
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "query": "Tenders published by PWD.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [
+        "T-365214"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:26.857Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Tenders published by PWD.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Sylhet PWD"
+              ],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:26.858Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Sylhet",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "PWD",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:26.913Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:29.130Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-365214",
+                "title": "Supply and Delivery of Essential Drugs & Hospital Medical Consumables"
+              }
+            ],
+            "replyLength": 60
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "query": "LGED procurement notices.",
+      "expected": [
+        "T-987412",
+        "T-115222",
+        "T-448210"
+      ],
+      "actual": [
+        "T-987412",
+        "T-115222",
+        "T-448210"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:31.224Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "LGED procurement notices.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Dhaka LGED",
+                "Khulna LGED",
+                "Sylhet LGED"
+              ],
+              "categories": [],
+              "date_filter": null,
+              "keywords": [
+                "procurement"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:31.224Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Dhaka",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "LGED",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Khulna",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "LGED",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Sylhet",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "LGED",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:31.280Z",
+          "details": {
+            "matchCount": 3,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:34.084Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-987412",
+                "title": "Construction of 4-Storied Upazila Parishad Administrative Building & Hall Room"
+              },
+              {
+                "id": "T-115222",
+                "title": "Corrigendum: Maintenance & Rehabilitation of 12.5km RCC Road from Jashore to Magura"
+              },
+              {
+                "id": "T-448210",
+                "title": "Construction of 2x30m Span PSC Girder Bridge over local channels"
+              }
+            ],
+            "replyLength": 406
+          }
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "query": "Find notices from Bangladesh Computer Council.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [
+        "T-852140"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:35.799Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Find notices from Bangladesh Computer Council.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Bangladesh Computer Council (BCC)"
+              ],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:35.799Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Bangladesh",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Computer",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Council",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "(BCC)",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:35.854Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:37.063Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-852140",
+                "title": "Supply, Installation & Integration of Enterprise Server & Networking Solutions"
+              }
+            ],
+            "replyLength": 80
+          }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "query": "PHE department tenders.",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [
+        "T-102938"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:38.567Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "PHE department tenders.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Dhaka Public Health Engineering (PHE)"
+              ],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:38.567Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Dhaka",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Public",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Health",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Engineering",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "(PHE)",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:38.624Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:39.521Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-102938",
+                "title": "Supply and Installation of High-Yield deep Tube-Wells & Water Pipelines"
+              }
+            ],
+            "replyLength": 73
+          }
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "query": "BREB organization electrical notice.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [
+        "T-609214"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:41.267Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "BREB organization electrical notice.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Bangladesh Rural Electrification Board (BREB)"
+              ],
+              "categories": [
+                "Electrical Work",
+                "Electrical Supply"
+              ],
+              "date_filter": null,
+              "keywords": [
+                "electrical",
+                "notice"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:41.267Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Bangladesh",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Rural",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Electrification",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Board",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "(BREB)",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Electrical Work",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "category": {
+                        "$regex": "Electrical Supply",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:41.323Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:43.418Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-609214",
+                "title": "Supply of Heavy Duty Electrical Transformers & Smart PFI Capacitors"
+              }
+            ],
+            "replyLength": 223
+          }
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "query": "Is there any notice from Bangladesh Power Development Board?",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [
+        "T-541298"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:44.994Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Is there any notice from Bangladesh Power Development Board?",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Bangladesh Power Development Board (PDB)"
+              ],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:44.994Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Bangladesh",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Power",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Development",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Board",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "(PDB)",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:45.049Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:45.940Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-541298",
+                "title": "Design, Supply, Testing & Commissioning of 33/11KV Sub-Station Systems"
+              }
+            ],
+            "replyLength": 107
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "query": "Dhaka City Corporation tenders.",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [
+        "T-201569"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:47.386Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Dhaka City Corporation tenders.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Dhaka City Corporation (South)"
+              ],
+              "categories": [],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:47.386Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Dhaka",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "City",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Corporation",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "(South)",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:47.447Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:48.672Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-201569",
+                "title": "Installation of Smart Solar LED Street Lighting & Hybrid Pole Substations"
+              }
+            ],
+            "replyLength": 77
+          }
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "query": "Bangladesh Hi-Tech Park Authority portal tender.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [
+        "T-741029"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:53.363Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Bangladesh Hi-Tech Park Authority portal tender.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Bangladesh Hi-Tech Park Authority"
+              ],
+              "categories": [],
+              "date_filter": null,
+              "keywords": [
+                "portal",
+                "tender"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:53.363Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Bangladesh",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Hi-Tech",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Park",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "Authority",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "portal",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "portal",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "portal",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:53.418Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:54.426Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-741029",
+                "title": "Development of Multi-Tenant Cloud ERP & Smart Citizen Portal Mobile App"
+              }
+            ],
+            "replyLength": 99
+          }
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "query": "Sylhet PWD drugs notice.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [
+        "T-365214"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:56.453Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Sylhet PWD drugs notice.",
+            "extractedParams": {
+              "districts": [
+                "Sylhet"
+              ],
+              "organizations": [
+                "Sylhet PWD"
+              ],
+              "categories": [
+                "Drugs and Pharmaceuticals"
+              ],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:56.453Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "district": {
+                        "$regex": "Sylhet",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Sylhet",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "PWD",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Drugs and Pharmaceuticals",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:56.508Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:32:57.879Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-365214",
+                "title": "Supply and Delivery of Essential Drugs & Hospital Medical Consumables"
+              }
+            ],
+            "replyLength": 124
+          }
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "query": "Khulna LGED road reconstruction work.",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [
+        "T-115222"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:32:59.944Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Khulna LGED road reconstruction work.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [
+                "Khulna LGED"
+              ],
+              "categories": [
+                "Road Construction"
+              ],
+              "date_filter": null,
+              "keywords": [
+                "reconstruction",
+                "work"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:32:59.944Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "organization": {
+                            "$regex": "Khulna",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "organization": {
+                            "$regex": "LGED",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Road Construction",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:32:59.999Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:33:01.276Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-115222",
+                "title": "Corrigendum: Maintenance & Rehabilitation of 12.5km RCC Road from Jashore to Magura"
+              }
+            ],
+            "replyLength": 94
+          }
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "query": "Building Construction category works.",
+      "expected": [
+        "T-987412"
+      ],
+      "actual": [
+        "T-987412",
+        "T-1284812",
+        "T-1284804",
+        "T-1284786",
+        "T-1284831",
+        "T-1284204",
+        "T-1284882",
+        "T-1284817",
+        "T-1284816",
+        "T-1284818"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:33:02.627Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Building Construction category works.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [],
+              "categories": [
+                "Building Construction"
+              ],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:33:02.627Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Building Construction",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:33:02.688Z",
+          "details": {
+            "matchCount": 10,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:33:03.513Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-987412",
+                "title": "Construction of 4-Storied Upazila Parishad Administrative Building & Hall Room"
+              },
+              {
+                "id": "T-1284812",
+                "title": "Repair & Renovation works of Executive Engineers Office Room Interior decoration at National Housing Authority, Dinajpur Division, Dinajpur."
+              },
+              {
+                "id": "T-1284804",
+                "title": "Renovation works of Sub Division Office Back Side Boundary wall at National Housing Authority, Dinajpur."
+              },
+              {
+                "id": "T-1284786",
+                "title": "Renovation of Drain and Apron, septic tank at Inspection Banglow (IB) of Bogura sub-Division at National Housing Authority, Dinajpur."
+              },
+              {
+                "id": "T-1284831",
+                "title": "Ancillary electrification works including mitigation of inadequate illumination at the rear (South side) of the Ministry of Defence Main Building and other strategic locations."
+              },
+              {
+                "id": "T-1284204",
+                "title": "OTM-184/CUCE-2790/SADP-R/2025-26\nConstruction work for Comfort zone on Lake side of Faculty of Science at the University of Chittagong"
+              },
+              {
+                "id": "T-1284882",
+                "title": "HED/DCD/GOB-HS/2025-26/95\nRepair, renovation & remodeling works of existing common toilet blocks including conversion into separate male & female toilets from 2nd floor to 5th floor of DNCC Dedicated Covid-19 Hospital at Mohakhali, Dhaka."
+              },
+              {
+                "id": "T-1284817",
+                "title": "Repair/renovation work of the government residence of the Additional Inspector General of Prisons (Administration) of Department of Prisons"
+              },
+              {
+                "id": "T-1284816",
+                "title": "Necessary work including false ceilings, floor tiles, stair tiles, collapsible gates in various places from the ground floor to the 11th floor of the 12 storied building of the Land Administration Training Center"
+              },
+              {
+                "id": "T-1284818",
+                "title": "Installation of outdoor unit of air conditioning equipment outside the dormitory building and necessary work including installation of steel structure railings for risk-free servicing and maintenance at NAPD dormitory building"
+              }
+            ],
+            "replyLength": 60
+          }
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "query": "Computer server procurement.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [
+        "T-852140"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:33:06.109Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Computer server procurement.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [],
+              "categories": [
+                "Computer"
+              ],
+              "date_filter": null,
+              "keywords": [
+                "Computer",
+                "server",
+                "procurement"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:33:06.109Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Computer",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "server",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "server",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "server",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:33:06.170Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:33:07.199Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-852140",
+                "title": "Supply, Installation & Integration of Enterprise Server & Networking Solutions"
+              }
+            ],
+            "replyLength": 66
+          }
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "query": "Tenders related to Road Construction.",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [
+        "T-115222",
+        "T-1269261",
+        "Tender ID-1269261",
+        "T-999888",
+        "T-999777"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:33:09.745Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Tenders related to Road Construction.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [],
+              "categories": [
+                "Road Construction"
+              ],
+              "date_filter": null,
+              "keywords": []
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:33:09.745Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Road Construction",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:33:09.806Z",
+          "details": {
+            "matchCount": 5,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:33:10.634Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-115222",
+                "title": "Corrigendum: Maintenance & Rehabilitation of 12.5km RCC Road from Jashore to Magura"
+              },
+              {
+                "id": "T-1269261",
+                "title": "Supplying of Asphalt materials for Departmental Routine maintenance work of different roads of Vitikandi Road Sub-Division under Narayanganj Road Division during the year of 2025-2026."
+              },
+              {
+                "id": "Tender ID-1269261",
+                "title": "Supplying of Asphalt materials for Departmental Routine maintenance work of different roads of Vitikandi Road Sub-Division under Narayanganj Road Division during the year of 2025-2026."
+              },
+              {
+                "id": "T-999888",
+                "title": "Emergency Rehabilitation of Zilla Parishad Roadways & Culverts in Rangpur Sadar"
+              },
+              {
+                "id": "T-999777",
+                "title": "Emergency Rehabilitation of Zilla Parishad Roadways & Culverts in Rangpur Sadar"
+              }
+            ],
+            "replyLength": 72
+          }
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "query": "Medical equipment and drugs tenders.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [
+        "T-365214",
+        "T-1282619",
+        "T-1283801",
+        "T-1215021",
+        "Tender ID-1282619",
+        "Tender ID-1283801",
+        "Tender ID-1215021"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:33:14.141Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Medical equipment and drugs tenders.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [],
+              "categories": [
+                "Drugs and Pharmaceuticals"
+              ],
+              "date_filter": null,
+              "keywords": [
+                "Medical",
+                "equipment",
+                "drugs"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:33:14.141Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Drugs and Pharmaceuticals",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "medical",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "medical",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "medical",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "equipment",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "equipment",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "equipment",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "drugs",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "drugs",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "drugs",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:33:14.205Z",
+          "details": {
+            "matchCount": 7,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:33:15.044Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-365214",
+                "title": "Supply and Delivery of Essential Drugs & Hospital Medical Consumables"
+              },
+              {
+                "id": "T-1282619",
+                "title": "Procurement and Supply of Medical items, Computer, Projector, and Related items at GSTU, Gopalganj"
+              },
+              {
+                "id": "T-1283801",
+                "title": "Procurement of Office Equipment for Chittagong Medical University."
+              },
+              {
+                "id": "T-1215021",
+                "title": "Procurement of Electrical Items for the Fiscal Year for Chittagong Medical University Offices"
+              },
+              {
+                "id": "Tender ID-1282619",
+                "title": "Procurement and Supply of Medical items, Computer, Projector, and Related items at GSTU, Gopalganj"
+              },
+              {
+                "id": "Tender ID-1283801",
+                "title": "Procurement of Office Equipment for Chittagong Medical University."
+              },
+              {
+                "id": "Tender ID-1215021",
+                "title": "Procurement of Electrical Items for the Fiscal Year for Chittagong Medical University Offices"
+              }
+            ],
+            "replyLength": 66
+          }
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "query": "Sub-station testing commissioning works.",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [
+        "T-541298",
+        "T-1284910",
+        "T-1284596",
+        "T-1282619",
+        "T-1284009"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:33:16.853Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Sub-station testing commissioning works.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [],
+              "categories": [
+                "Electrical Work",
+                "Electrical Supply"
+              ],
+              "date_filter": null,
+              "keywords": [
+                "sub-station",
+                "testing",
+                "commissioning",
+                "works"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:33:16.853Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Electrical Work",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "category": {
+                        "$regex": "Electrical Supply",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "sub-station",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "sub-station",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "sub-station",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "testing",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "testing",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "testing",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "commissioning",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "commissioning",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "commissioning",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:33:16.915Z",
+          "details": {
+            "matchCount": 0,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "3a. Fuzzy Fallback Executing",
+          "timestamp": "2026-05-28T00:33:16.915Z",
+          "details": {
+            "fuzzyWords": [
+              "sub-station",
+              "testing",
+              "commissioning",
+              "works"
+            ],
+            "compiledFuzzyQuery": {
+              "$or": [
+                {
+                  "$or": [
+                    {
+                      "title": {
+                        "$regex": "sub-station",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "description": {
+                        "$regex": "sub-station",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "district": {
+                        "$regex": "sub-station",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "organization": {
+                        "$regex": "sub-station",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "title": {
+                        "$regex": "testing",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "description": {
+                        "$regex": "testing",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "district": {
+                        "$regex": "testing",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "organization": {
+                        "$regex": "testing",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "title": {
+                        "$regex": "commissioning",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "description": {
+                        "$regex": "commissioning",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "district": {
+                        "$regex": "commissioning",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "organization": {
+                        "$regex": "commissioning",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "title": {
+                        "$regex": "works",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "description": {
+                        "$regex": "works",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "district": {
+                        "$regex": "works",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "organization": {
+                        "$regex": "works",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "step": "3b. Fuzzy Fallback Results",
+          "timestamp": "2026-05-28T00:33:16.982Z",
+          "details": {
+            "fuzzyMatchCount": 5
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:33:18.032Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-541298",
+                "title": "Design, Supply, Testing & Commissioning of 33/11KV Sub-Station Systems"
+              },
+              {
+                "id": "T-1284910",
+                "title": "Procurement and Supply of Furniture for the Department and other Offices at GSTU Campus, Gopalganj"
+              },
+              {
+                "id": "T-1284596",
+                "title": "Procurement and Supply of Books item at GSTU, Gopalganj"
+              },
+              {
+                "id": "T-1282619",
+                "title": "Procurement and Supply of Medical items, Computer, Projector, and Related items at GSTU, Gopalganj"
+              },
+              {
+                "id": "T-1284009",
+                "title": "Procurement and Supply of Chemical items at GSTU, Gopalganj"
+              }
+            ],
+            "replyLength": 98
+          }
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "query": "Solar LED light installation.",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [
+        "T-201569"
+      ],
+      "passed": true,
+      "debug": [
+        {
+          "step": "1. Intent Parsing (GPT-4o-mini)",
+          "timestamp": "2026-05-28T00:33:20.533Z",
+          "details": {
+            "referenceDates": {
+              "today": "2026-05-28",
+              "tomorrow": "2026-05-29",
+              "yesterday": "2026-05-27",
+              "sevenDaysLater": "2026-06-04"
+            },
+            "userMessage": "Solar LED light installation.",
+            "extractedParams": {
+              "districts": [],
+              "organizations": [],
+              "categories": [
+                "Electrical Work",
+                "Electrical Supply"
+              ],
+              "date_filter": null,
+              "keywords": [
+                "Solar",
+                "LED",
+                "light",
+                "installation"
+              ]
+            }
+          }
+        },
+        {
+          "step": "2. Database Query Compilation",
+          "timestamp": "2026-05-28T00:33:20.534Z",
+          "details": {
+            "compiledMongoQuery": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "category": {
+                        "$regex": "Electrical Work",
+                        "$options": "i"
+                      }
+                    },
+                    {
+                      "category": {
+                        "$regex": "Electrical Supply",
+                        "$options": "i"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "solar",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "solar",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "solar",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "led",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "led",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "led",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$or": [
+                        {
+                          "title": {
+                            "$regex": "light",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "description": {
+                            "$regex": "light",
+                            "$options": "i"
+                          }
+                        },
+                        {
+                          "category": {
+                            "$regex": "light",
+                            "$options": "i"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "hasDateFilter": false
+          }
+        },
+        {
+          "step": "3. Database Search Results",
+          "timestamp": "2026-05-28T00:33:20.590Z",
+          "details": {
+            "matchCount": 1,
+            "skippedFuzzyFallback": false
+          }
+        },
+        {
+          "step": "4. Conversational Summary Generation",
+          "timestamp": "2026-05-28T00:33:21.480Z",
+          "details": {
+            "tendersSnippetPassed": [
+              {
+                "id": "T-201569",
+                "title": "Installation of Smart Solar LED Street Lighting & Hybrid Pole Substations"
+              }
+            ],
+            "replyLength": 106
+          }
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "query": "Girder bridge construction.",
+      "expected": [
+        "T-448210"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 28,
+      "query": "Multi-tenant cloud ERP software.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 29,
+      "query": "Deep tube-well water pipeline installation.",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 30,
+      "query": "Heavy duty electrical transformer supply.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 31,
+      "query": "Is there any notice published yesterday?",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 32,
+      "query": "Are there any tenders closing tomorrow?",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 33,
+      "query": "Show me tenders closing on 30 May 2026.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 34,
+      "query": "Tenders published between 20 May and 24 May 2026.",
+      "expected": [
+        "T-987412",
+        "T-852140",
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 35,
+      "query": "Are there any notices published today?",
+      "expected": [],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 36,
+      "query": "Bagerhat notice closing in 3 days.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 37,
+      "query": "Tenders closing within next 7 days.",
+      "expected": [
+        "T-115222",
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 38,
+      "query": "Notices published on May 22, 2026.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 39,
+      "query": "Tender notices published on 25 May.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 40,
+      "query": "Is there any notice closing on 15 June 2026?",
+      "expected": [
+        "T-987412"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 41,
+      "query": "Tenders closing on June 10.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 42,
+      "query": "Notices published from 15 May to 19 May 2026.",
+      "expected": [
+        "T-541298",
+        "T-448210",
+        "T-102938"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 43,
+      "query": "Show notices published before 12 May 2026.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 44,
+      "query": "Any notices published on 26 May?",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 45,
+      "query": "Tenders closing on June 25.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 46,
+      "query": "Sylhet district absolute drugs notice by PWD.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 47,
+      "query": "Dhaka area high tech park authority software tender.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 48,
+      "query": "Cox's Bazar area te PHE er high-yield tube-well tender ache?",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 49,
+      "query": "আজকে কি PWD এর কোনো নতুন টেন্ডার নোটিস পাবলিশ হয়েছে?",
+      "expected": [],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 50,
+      "query": "গতকাল কক্সবাজার থেকে কোন টেন্ডার নোটিস এসেছে?",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 51,
+      "query": "আগামীকাল বন্ধ হবে এমন কোনো LGED টেন্ডার আছে?",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 52,
+      "query": "BCC company hardware server computer setup.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 53,
+      "query": "চট্টগ্রামে বিদ্যুৎ উন্নয়ন বোর্ডের সাবস্টেশন টেন্ডার।",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 54,
+      "query": "সুনামগঞ্জে ব্রিজ নির্মাণের টেন্ডার নোটিস।",
+      "expected": [
+        "T-448210"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 55,
+      "query": "Savar Upazila parishad administrative building by LGED.",
+      "expected": [
+        "T-987412"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 56,
+      "query": "Bagerhat dynamic electrical transformer of BREB closing in 3 days.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 57,
+      "query": "Road construction tender in Khulna closing tomorrow.",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 58,
+      "query": "Software app development by Hi-Tech Park in Dhaka.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 59,
+      "query": "Essential life saving drugs in Sylhet PWD.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 60,
+      "query": "Dhaka national data center server system by BCC.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 61,
+      "query": "Tenders in Savar or Bagerhat.",
+      "expected": [
+        "T-987412",
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 62,
+      "query": "Find notices from BCC or BREB.",
+      "expected": [
+        "T-852140",
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 63,
+      "query": "Software & Website or Road Construction category.",
+      "expected": [
+        "T-115222",
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 64,
+      "query": "Council Computer Bangladesh setup solutions.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 65,
+      "query": "Rural Electrification Board Bagerhat transformer.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 66,
+      "query": "Power Development Board sub station Chattogram.",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 67,
+      "query": "Public Health Engineering Teknaf tube well.",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 68,
+      "query": "Show tenders closing on 20 June 2026.",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 69,
+      "query": "Notices closing on June 18.",
+      "expected": [
+        "T-448210"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 70,
+      "query": "Tenders closing on 5 June 2026.",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 71,
+      "query": "Show me tenders closing on June 22.",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 72,
+      "query": "Are there any notices closing today?",
+      "expected": [],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 73,
+      "query": "Notices published on May 10, 2026.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 74,
+      "query": "Notices published on May 12.",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 75,
+      "query": "Notices published on 15 May.",
+      "expected": [
+        "T-448210"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 76,
+      "query": "Notices published on 18 May.",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 77,
+      "query": "Notices published on 19 May 2026.",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 78,
+      "query": "Notices published on 20 May 2026.",
+      "expected": [
+        "T-987412"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 79,
+      "query": "Notices published on 22 May 2026.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 80,
+      "query": "Notices published on 24 May.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 81,
+      "query": "Notices published on 25 May.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 82,
+      "query": "Notices published on 26 May.",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 83,
+      "query": "Tenders closing on 25 June 2026.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 84,
+      "query": "Tenders closing on 12 June 2026.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 85,
+      "query": "Tenders closing on June 15.",
+      "expected": [
+        "T-987412"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 86,
+      "query": "Tenders closing on June 20.",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 87,
+      "query": "Tenders closing on June 22.",
+      "expected": [
+        "T-541298"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 88,
+      "query": "Notices published between 10 May and 18 May 2026 in Bagerhat or Chattogram.",
+      "expected": [
+        "T-609214",
+        "T-541298"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 89,
+      "query": "Notices published between 10 May and 18 May 2026 in Bagerhat or Chattogram or Dhaka.",
+      "expected": [
+        "T-609214",
+        "T-541298"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 90,
+      "query": "Are there any active tender opportunities from Higher Education Secondary Division?",
+      "expected": [],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 91,
+      "query": "কক্সবাজার yesterday notice.",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 92,
+      "query": "Magura 28 May closing road.",
+      "expected": [
+        "T-115222"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 93,
+      "query": "BCC enterprise cloud database computing.",
+      "expected": [
+        "T-852140"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 94,
+      "query": "PHE deep well safe water drinking Teknaf.",
+      "expected": [
+        "T-102938"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 95,
+      "query": "Rural Board steps down transformer.",
+      "expected": [
+        "T-609214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 96,
+      "query": "Health Drugs Life Saving Sylhet PWD.",
+      "expected": [
+        "T-365214"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 97,
+      "query": "Solar light Hybrid poles City Corporation.",
+      "expected": [
+        "T-201569"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 98,
+      "query": "PSC Girder Bridge Sunamganj LGED.",
+      "expected": [
+        "T-448210"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 99,
+      "query": "Building Upazila administrative Savar LGED.",
+      "expected": [
+        "T-987412"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    },
+    {
+      "id": 100,
+      "query": "Cloud Multi-Tenant ERP Portal Gateway.",
+      "expected": [
+        "T-741029"
+      ],
+      "actual": [],
+      "passed": false,
+      "error": "fetch failed"
+    }
+  ]
+}

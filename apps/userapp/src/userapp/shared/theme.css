@@ -1,0 +1,23 @@
+:root {
+  /* Light mode color palette */
+  --primary-background: #FFFFFF;
+  --secondary-background: #F7F8F8;
+  --tertiary-surface: #F3F4F6;
+  --main-text: #08090A;
+  --secondary-text: #62666D;
+  --muted-text: #8A8F98;
+  --border-subtle: #E5E5E6;
+  --hover-surface: #F1F2F4;
+  --accent-purple: #5E6AD2;
+  --accent-purple-hover: #717CFF;
+  --accent-blue: #55CDFF;
+  --accent-green: #89D196;
+  --accent-pink: #F79CE0;
+  --accent-orange: #FFC47C;
+}
+
+/* Optional utility classes for easier usage */
+.bg-primary { background-color: var(--primary-background); }
+.text-primary { color: var(--main-text); }
+.border-subtle { border-color: var(--border-subtle); }
+/* Add more utility classes as needed */

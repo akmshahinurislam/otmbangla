@@ -1,0 +1,38 @@
+# Node modules
+node_modules
+**/node_modules
+apps/*/node_modules
+packages/*/node_modules
+services/*/node_modules
+
+# Build outputs
+dist
+build
+.next
+.turbo
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Git and version control
+.git
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE and OS files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store

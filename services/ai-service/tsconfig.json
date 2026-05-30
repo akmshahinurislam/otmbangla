@@ -1,0 +1,18 @@
+{
+  "extends": "../../packages/config/tsconfig-preset/tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "baseUrl": ".",
+    "outDir": "dist",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/test-runner.js", "src/test-runner-100.js", "src/check-db.js", "src/generate-csv.js"]
+}

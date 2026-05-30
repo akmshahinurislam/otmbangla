@@ -1,0 +1,174 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Checklist step pop-in animation */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Subtle log terminal fade and slide */
+@keyframes consoleSlide {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-consoleSlide {
+  animation: consoleSlide 0.2s ease-out forwards;
+}
+
+/* Pulsing ambient glow for loader dashboard */
+@keyframes ambientGlow {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.25;
+    transform: scale(1.15);
+  }
+}
+
+.animate-ambientGlow {
+  animation: ambientGlow 8s ease-in-out infinite;
+}
+
+/* SVG draw dash effect for green checkmarks */
+@keyframes drawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.draw-checkmark {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawCheck 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Chatbot Right Panel Slide-in Animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Chat bubble bounce pop-in entry */
+@keyframes bubbleEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-bubbleEnter {
+  animation: bubbleEnter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* File tags upload pop-in anim */
+@keyframes tagEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-tagEnter {
+  animation: tagEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* AI typing indicator bounce dot pulse */
+@keyframes typingPulse {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.animate-typingPulse-1 {
+  animation: typingPulse 1s ease-in-out infinite;
+}
+
+.animate-typingPulse-2 {
+  animation: typingPulse 1s ease-in-out infinite 0.2s;
+}
+
+.animate-typingPulse-3 {
+  animation: typingPulse 1s ease-in-out infinite 0.4s;
+}
+
+/* Slim elegant modern scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+

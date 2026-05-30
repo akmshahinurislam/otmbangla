@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./services/auth-service/Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: "${MONGODB_URI}"
+      JWT_SECRET: "${JWT_SECRET}"
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./services/api-gateway/Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:3002"
+    depends_on:
+      - auth-service
+
+  analysis-service:
+    build:
+      context: ./services/analysis-service
+      dockerfile: Dockerfile
+    container_name: analysis-service
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+
+  webscrap-service:
+    build:
+      context: .
+      dockerfile: ./services/webscrap-service/Dockerfile
+    container_name: webscrap-service
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: "${MONGODB_URI}"
+      PORT: "3003"
+    ports:
+      - "3003:3003"
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: ./services/ai-service/Dockerfile
+    container_name: ai-service
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: "${MONGODB_URI}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+      PORT: "3004"
+    ports:
+      - "3004:3004"
+
+
+

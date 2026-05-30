@@ -1,0 +1,52 @@
+@import "./userapp/shared/theme.css";
+@import "./userapp/shared/theme-utilities.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes bellSwing {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(10deg); }
+  40% { transform: rotate(-8deg); }
+  60% { transform: rotate(6deg); }
+  80% { transform: rotate(-4deg); }
+}
+
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(20deg); }
+  30% { transform: rotate(-18deg); }
+  45% { transform: rotate(15deg); }
+  60% { transform: rotate(-12deg); }
+  75% { transform: rotate(8deg); }
+  90% { transform: rotate(-4deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-bell-swing {
+  transform-origin: top center;
+  animation: bellSwing 4s ease-in-out infinite;
+}
+
+.group:hover .animate-bell-shake {
+  transform-origin: top center;
+  animation: bellShake 0.8s ease-in-out;
+}
+
+.animate-modal-backdrop {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.animate-modal-content {
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
