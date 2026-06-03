@@ -162,7 +162,7 @@ export function AppShell({
       }
     ];
 
-    let realMatches = [];
+    let realMatches: any[] = [];
     if (subPreferences) {
       const { categories, organizations, locations } = subPreferences;
       realMatches = TENDER_NOTICES_DATA.filter(tender => {

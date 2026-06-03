@@ -8,7 +8,8 @@ export type UserFunctionId =
   | 'current-slt-less'
   | 'winner-prediction'
   | 'slt-calculator'
-  | 'tender-notices';
+  | 'tender-notices'
+  | 'download-extension';
 
 export type UserFunction = {
   id: UserFunctionId;

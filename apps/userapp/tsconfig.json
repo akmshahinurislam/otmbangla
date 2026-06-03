@@ -31,7 +31,8 @@
     "eslint.config.js",
     ".prettierrc.js",
     "dist",
-    "android"
+    "android",
+    "public"
   ],
   "references": [
     {

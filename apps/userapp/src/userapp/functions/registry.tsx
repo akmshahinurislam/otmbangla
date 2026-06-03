@@ -1,4 +1,4 @@
-import { AnalysisIcon, DashboardIcon, NPPIIcon, PredictionIcon, SLTIcon, WinnerIcon, NoticeIcon } from '../shared/icons/AppIcons';
+import { AnalysisIcon, DashboardIcon, NPPIIcon, PredictionIcon, SLTIcon, WinnerIcon, NoticeIcon, DownloadIcon } from '../shared/icons/AppIcons';
 import { Capacitor } from '@capacitor/core';
 import { SLTCalculatorPage } from './slt-calculator/SLTCalculatorPage';
 import { AverageNPPIPage } from './average-nppi/AverageNPPIPage';
@@ -9,6 +9,7 @@ import { RatePredictionPage } from './rate-prediction/RatePredictionPage';
 import type { UserFunction, UserFunctionId } from './types';
 import { WinnerPredictionPage } from './winner-prediction/WinnerPredictionPage';
 import { TenderNoticesPage } from './tender-notices/TenderNoticesPage';
+import { DownloadExtensionPage } from './download-extension/DownloadExtensionPage';
 
 type DashboardPageFactoryProps = {
   getFunctions: () => UserFunction[];
@@ -95,6 +96,16 @@ export function createUserFunctions({ getFunctions, onOpenFunction }: DashboardP
         'border-[#E5E5E6] bg-[#F3F4F6] text-[#5E6AD2] group-hover:border-[#5E6AD2] group-hover:bg-[#5E6AD2] dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-300 dark:group-hover:bg-white/[0.08]',
       icon: NoticeIcon,
       Page: TenderNoticesPage,
+    },
+    {
+      id: 'download-extension',
+      name: 'Download Extension',
+      description: 'Download Chrome Extension companion to chat with any web page content.',
+      statusLabel: 'Companion',
+      accentClassName:
+        'border-[#E5E5E6] bg-[#F3F4F6] text-[#717CFF] group-hover:border-[#717CFF] group-hover:bg-[#717CFF] dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-300 dark:group-hover:bg-white/[0.08]',
+      icon: DownloadIcon,
+      Page: DownloadExtensionPage,
     },
   ];
 

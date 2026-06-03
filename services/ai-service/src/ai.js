@@ -523,3 +523,49 @@ export async function processAiQuery(userMessage, history = []) {
     debug: debugLogs
   };
 }
+
+/**
+ * Processes Chrome Extension Page QA query using OpenAI
+ * @param {string} pageContent
+ * @param {string} question
+ * @param {any[]} history
+ */
+export async function processPageQa(pageContent, question, history = []) {
+  try {
+    const systemPrompt = `You are a helpful and modern AI chatbot extension.
+You are reading the user's active browser tab/web page content.
+Your goal is to answer the user's questions based on the provided page content.
+If the answer is not in the page content, use your general knowledge but clearly state that it is not explicitly mentioned on the page.
+
+Active Page Content:
+"""
+${pageContent}
+"""`;
+
+    // Map history to OpenAI message format
+    const formattedHistory = history.map(item => {
+      /** @type {"user" | "assistant"} */
+      const role = item.role === 'ai' || item.role === 'assistant' ? 'assistant' : 'user';
+      return {
+        role,
+        content: item.content || item.text
+      };
+    });
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...formattedHistory,
+        { role: 'user', content: question }
+      ],
+      temperature: 0.3
+    });
+
+    return completion.choices[0]?.message?.content || 'No response generated.';
+  } catch (error) {
+    console.error('❌ Failed to process page QA with OpenAI:', error);
+    throw error;
+  }
+}
+

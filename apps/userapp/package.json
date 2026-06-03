@@ -10,7 +10,8 @@
     "test": "jest",
     "lint": "eslint \"**/*.ts*\"",
     "cap:sync": "npm run build && npx cap sync",
-    "cap:open": "npx cap open android"
+    "cap:open": "npx cap open android",
+    "zip-extension": "powershell -Command \"Compress-Archive -Path public/extension/* -DestinationPath public/extension.zip -Force\""
   },
   "dependencies": {
     "@capacitor/core": "^8.3.4",
