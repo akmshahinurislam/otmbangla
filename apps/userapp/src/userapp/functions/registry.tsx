@@ -1,4 +1,5 @@
 import { AnalysisIcon, DashboardIcon, NPPIIcon, PredictionIcon, SLTIcon, WinnerIcon, NoticeIcon } from '../shared/icons/AppIcons';
+import { Capacitor } from '@capacitor/core';
 import { SLTCalculatorPage } from './slt-calculator/SLTCalculatorPage';
 import { AverageNPPIPage } from './average-nppi/AverageNPPIPage';
 import { ContractorAnalysisPage } from './contractor-analysis/ContractorAnalysisPage';
@@ -15,7 +16,7 @@ type DashboardPageFactoryProps = {
 };
 
 export function createUserFunctions({ getFunctions, onOpenFunction }: DashboardPageFactoryProps): UserFunction[] {
-  return [
+  const allFunctions: UserFunction[] = [
     {
       id: 'dashboard',
       name: 'Dashboard',
@@ -96,4 +97,14 @@ export function createUserFunctions({ getFunctions, onOpenFunction }: DashboardP
       Page: TenderNoticesPage,
     },
   ];
+
+  if (Capacitor.isNativePlatform()) {
+    return allFunctions.filter(func => 
+      func.id === 'dashboard' || 
+      func.id === 'tender-notices' || 
+      func.id === 'slt-calculator'
+    );
+  }
+
+  return allFunctions;
 }

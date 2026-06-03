@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import { getTendersCollection, getSubscriptionsCollection } from './db.js';
-import { runScraper } from './scraper.js';
+import { getTendersCollection, getSubscriptionsCollection, getAppPackagesCollection } from './db.js';
+import { runScraper, runAPPScraper } from './scraper.js';
 import logger from './utils/logger.js';
+
 
 const app = express();
 
@@ -199,6 +200,29 @@ app.post('/api/scrape', async (req, res) => {
   } catch (error) {
     logger.error('🔥 Scraping trigger error:', error);
     res.status(500).json({ error: 'Scraping failed' });
+  }
+});
+
+// 4. Retrieve saved Annual Procurement Plan (APP) packages
+app.get('/api/app-packages', async (req, res) => {
+  try {
+    const collection = getAppPackagesCollection();
+    const appPackages = await collection.find({}).sort({ scrapedAt: -1 }).toArray();
+    res.json(appPackages);
+  } catch (error) {
+    logger.error('🔥 Error fetching APP packages:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// 5. Manual APP Scrape Trigger endpoint
+app.post('/api/scrape/app', async (req, res) => {
+  try {
+    const result = await runAPPScraper();
+    res.json({ success: true, message: 'APP Scraping routine completed!', data: result });
+  } catch (error) {
+    logger.error('🔥 APP Scraping trigger error:', error);
+    res.status(500).json({ error: 'APP Scraping failed' });
   }
 });
 

@@ -25,8 +25,8 @@ async function startServer() {
   });
 
   // 5. Spin up the Express server
-  server = app.listen(PORT, () => {
-    logger.info(`🚀 Web Scraping Service running on http://localhost:${PORT}`);
+  server = app.listen(Number(PORT), '0.0.0.0', () => {
+    logger.info(`🚀 Web Scraping Service running on http://0.0.0.0:${PORT}`);
   });
 }
 

@@ -282,6 +282,10 @@ export function AiAssistantPanel({ isOpen, onClose }: AiAssistantPanelProps) {
           ? 'w-full md:w-[380px] opacity-100 border-l border-[#E5E5E6] dark:border-white/10' 
           : 'w-0 opacity-0 overflow-hidden border-l-0 pointer-events-none'
       }`}
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
     >
       {/* Hidden inputs for attachments */}
       <input 

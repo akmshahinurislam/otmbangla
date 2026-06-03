@@ -37,6 +37,12 @@ app.use(cors({
 
 app.use(express.json());
 
+// Global request logger middleware to capture any incoming packets
+app.use((req, res, next) => {
+  logger.info(`📥 [INCOMING REQ] ${req.method} ${req.originalUrl} from IP: ${req.ip} (Headers: ${JSON.stringify(req.headers)})`);
+  next();
+});
+
 const JWT_SECRET = process.env.JWT_SECRET || 'otmbangla_jwt_secret_key_2026_xyz';
 
 // Global error handler middleware

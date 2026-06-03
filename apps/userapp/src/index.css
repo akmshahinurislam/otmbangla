@@ -50,3 +50,69 @@
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Mobile App Standard Sizing Overrides (for viewport widths <= 640px) */
+@media (max-width: 640px) {
+  body, html {
+    font-size: 15px !important;
+  }
+
+  /* Upscale utility texts on mobile for extreme readability */
+  .text-xs {
+    font-size: 0.8125rem !important; /* 13px */
+  }
+  
+  .text-\[10px\] {
+    font-size: 0.75rem !important; /* 12px */
+  }
+
+  .text-\[11px\] {
+    font-size: 0.8125rem !important; /* 13px */
+  }
+
+  .text-\[9px\] {
+    font-size: 0.75rem !important; /* 12px */
+  }
+
+  .text-sm {
+    font-size: 0.9375rem !important; /* 15px */
+  }
+
+  /* Enforce standard input heights and prevent auto-zoom on iOS/Capacitor */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Forces 16px/1rem to prevent viewport zooming */
+    height: 3.25rem !important; /* ~52px premium touch targets */
+    border-radius: 0.75rem !important; /* 12px rounded-xl */
+  }
+  
+  textarea {
+    height: auto !important;
+    min-height: 5.5rem !important;
+  }
+
+  /* Adjust checkbox sizes */
+  input[type="checkbox"] {
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+  }
+
+  /* Enforce standard primary button height inside other components */
+  button:not([class*="h-"]):not([class*="py-"]):not([class*="rounded-full"]):not([type="button"][title="Developer Settings"]) {
+    min-height: 3rem !important; /* 48px standard touch height */
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+  }
+
+  /* Ensure card margins have elegant mobile breathing space */
+  .p-4 {
+    padding: 1.25rem !important;
+  }
+}
+

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import { getApiUrl } from '../../shared/config';
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url).toString();
 
 export function SLTCalculatorPage() {
@@ -286,7 +287,7 @@ export function SLTCalculatorPage() {
     try {
       // DEBUG: show form data in console before sending
       console.log('Submitting form data:', Object.fromEntries(formData.entries()));
-      const resp = await fetch('/analyze', {
+      const resp = await fetch(`${getApiUrl(8001)}/analyze`, {
         method: 'POST',
         body: formData,
       });

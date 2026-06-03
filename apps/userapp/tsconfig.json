@@ -30,7 +30,8 @@
     "tailwind.config.js",
     "eslint.config.js",
     ".prettierrc.js",
-    "dist"
+    "dist",
+    "android"
   ],
   "references": [
     {

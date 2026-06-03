@@ -33,6 +33,13 @@ export async function initializeDatabase() {
     const subscriptions = db.collection('alert_subscriptions');
     await subscriptions.createIndex({ emails: 1 });
 
+    logger.info('🔨 Ensuring indexes exist on "app_packages" collection...');
+    const appPackages = db.collection('app_packages');
+    await appPackages.createIndex({ appId: 1, pkgId: 1 }, { unique: true });
+    await appPackages.createIndex({ appId: 1 });
+    await appPackages.createIndex({ pkgId: 1 });
+    await appPackages.createIndex({ financialYear: 1 });
+
     logger.info('✅ MongoDB Database and indexes verified for collections!');
   } catch (error) {
     logger.error('❌ Failed to initialize MongoDB Database:', error);
@@ -59,6 +66,17 @@ export function getSubscriptionsCollection() {
   }
   return db.collection('alert_subscriptions');
 }
+
+/**
+ * Get the Annual Procurement Plan (APP) packages collection
+ */
+export function getAppPackagesCollection() {
+  if (!db) {
+    throw new Error('Database not initialized. Call initializeDatabase first.');
+  }
+  return db.collection('app_packages');
+}
+
 
 /**
  * Close database connection

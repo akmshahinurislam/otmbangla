@@ -22,7 +22,13 @@ export function Sidebar({ activeFunctionId, functions, onSelectFunction, onLogou
   const currentPath = location.pathname.replace(/^\//, '');
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col justify-between border-r border-subtle bg-primary-bg p-4 dark:border-white/10 dark:bg-neutral-950 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:static md:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <aside 
+      className={`fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col justify-between border-r border-subtle bg-primary-bg px-4 dark:border-white/10 dark:bg-neutral-950 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:static md:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      style={{
+        paddingTop: 'calc(env(safe-area-inset-top) + 1rem)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)'
+      }}
+    >
       <div>
         <div className="mb-8 flex items-center justify-between px-2 py-2">
           <div className="flex items-center gap-3">
@@ -47,7 +53,7 @@ export function Sidebar({ activeFunctionId, functions, onSelectFunction, onLogou
           </button>
         </div>
 
-        <nav className="space-y-1">
+        <nav className="space-y-1.5">
           {functions.map((item) => {
             const Icon = item.icon;
             const isActive = currentPath === item.id;
@@ -60,13 +66,13 @@ export function Sidebar({ activeFunctionId, functions, onSelectFunction, onLogou
                   onSelectFunction(item.id);
                   onCloseMobile?.();
                 }}
-                className={`flex h-9 w-full items-center gap-2.5 rounded-md px-2.5 text-sm font-medium transition-colors ${
+                className={`flex h-12 w-full items-center gap-3.5 rounded-xl px-3.5 text-base font-semibold transition-colors ${
                   isActive
                     ? 'bg-hover-surface text-main shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)] dark:bg-white/[0.07] dark:text-white dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                    : 'text-secondary hover:bg-hover-surface hover:text-main dark:text-neutral-500 dark:hover:bg-white/[0.04] dark:hover:text-neutral-200'
+                    : 'text-secondary hover:bg-hover-surface hover:text-main dark:text-neutral-400 dark:hover:bg-white/[0.04] dark:hover:text-neutral-200'
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-5 w-5 shrink-0" />
                 <span>{item.name}</span>
               </Link>
             );
@@ -74,33 +80,33 @@ export function Sidebar({ activeFunctionId, functions, onSelectFunction, onLogou
         </nav>
       </div>
 
-      <div className="space-y-3">
-        <div className="rounded-md border border-subtle bg-secondary-bg p-3 dark:border-white/10 dark:bg-white/[0.03]">
+      <div className="space-y-4">
+        <div className="rounded-xl border border-subtle bg-secondary-bg p-4 dark:border-white/10 dark:bg-white/[0.03]">
           <div className="mb-2 flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-green" />
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-green" />
             </span>
-            <span className="text-xs font-medium text-secondary dark:text-neutral-300">Services online</span>
+            <span className="text-sm font-semibold text-secondary dark:text-neutral-300">Services online</span>
           </div>
-          <p className="truncate font-mono text-[11px] text-muted dark:text-neutral-500">gateway :3002</p>
-          <p className="truncate font-mono text-[11px] text-muted dark:text-neutral-500">auth-service :3001</p>
+          <p className="truncate font-mono text-xs text-muted dark:text-neutral-500">gateway :3002</p>
+          <p className="truncate font-mono text-xs text-muted dark:text-neutral-500">auth-service :3001</p>
         </div>
 
         {/* User Card & Logout Button */}
-        <div className="rounded-md border border-subtle bg-secondary-bg p-3 dark:border-white/10 dark:bg-white/[0.03] space-y-3">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#5E6AD2]/10 text-[10px] font-bold text-[#5E6AD2] dark:bg-[#717CFF]/10 dark:text-[#717CFF]">
+        <div className="rounded-xl border border-subtle bg-secondary-bg p-4 dark:border-white/10 dark:bg-white/[0.03] space-y-4">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#5E6AD2]/10 text-xs font-bold text-[#5E6AD2] dark:bg-[#717CFF]/10 dark:text-[#717CFF]">
               {user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-main dark:text-white">{user.name}</p>
-              <p className="truncate text-[10px] text-muted dark:text-neutral-500">{user.email}</p>
+              <p className="truncate text-sm font-bold text-main dark:text-white">{user.name}</p>
+              <p className="truncate text-xs text-muted dark:text-neutral-500">{user.email}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setShowConfirm(true)}
-            className="flex h-8 w-full items-center justify-center gap-2 rounded-md border border-[#E5E5E6] bg-white text-xs font-semibold text-red-600 shadow-sm transition-all hover:bg-red-50/50 hover:text-red-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-red-400 dark:hover:bg-red-950/20 dark:hover:text-red-300 cursor-pointer"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#E5E5E6] bg-white text-sm font-bold text-red-600 shadow-sm transition-all hover:bg-red-50/50 hover:text-red-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-red-400 dark:hover:bg-red-950/20 dark:hover:text-red-300 cursor-pointer"
           >
             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

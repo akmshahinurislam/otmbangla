@@ -1,8 +1,11 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { getTendersCollection, getSubscriptionsCollection } from './db.js';
+import fs from 'fs';
+import { getTendersCollection, getSubscriptionsCollection, getAppPackagesCollection } from './db.js';
 import logger from './utils/logger.js';
 import { sendAlertEmail } from './utils/mail.js';
+
+
 
 // Base mock tenders corresponding to CATEGORY_TREE, ORGANIZATION_TREE and DISTRICT_TREE to seed the DB on start
 const BASE_TENDERS = [
@@ -578,3 +581,374 @@ export async function checkAndSendAlerts(tender) {
     logger.error(`🔥 Error checking alerts for tender ${tender.id}:`, err);
   }
 }
+
+/**
+ * Utility date parser for e-GP detail pages
+ * @param {string} dateStr
+ * @returns {string}
+ */
+function parseDetailDate(dateStr) {
+  if (!dateStr || dateStr.trim() === '-' || dateStr.trim() === '') return '';
+  const parts = dateStr.trim().split('-');
+  if (parts.length !== 3) return dateStr;
+  const day = parts[0].padStart(2, '0');
+  const monthStr = parts[1];
+  const year = parts[2];
+  
+  /** @type {Record<string, string>} */
+  const months = {
+    Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+    Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+  };
+  
+  const month = months[monthStr] || '01';
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Utility selector function to find sibling TD by case-insensitive text key
+ * @param {cheerio.CheerioAPI} $
+ * @param {string} searchKey
+ * @returns {string}
+ */
+function findDetailValue($, searchKey) {
+  let value = '';
+  const keyNormal = searchKey.toLowerCase().replace(/[:\s]/g, '');
+  $('td, th').each((i, el) => {
+    const cellText = $(el).text().trim();
+    const cellNormal = cellText.toLowerCase().replace(/[:\s]/g, '');
+    if (cellNormal === keyNormal || (cellNormal.startsWith(keyNormal) && cellNormal.length <= keyNormal.length + 3)) {
+      const sibling = $(el).next('td, th');
+      if (sibling.length > 0) {
+        value = sibling.text().trim();
+        return false; // break loop
+      }
+    }
+  });
+  return value;
+}
+
+/**
+ * Scrapes Annual Procurement Plan (APP) from eprocure.gov.bd and saves details in DB
+ */
+export async function runAPPScraper() {
+  logger.info('🕷️ Starting web scraping routine for Bangladesh e-GP Annual Procurement Plan (APP)...');
+  let collection;
+  if (process.env.MOCK_DB !== 'true') {
+    collection = getAppPackagesCollection();
+  }
+
+  try {
+    const listUrl = 'https://www.eprocure.gov.bd/SearchAPPServlet';
+    
+    // 1. Fetch the main APP listing table
+    const postDataList = new URLSearchParams({
+      stateId: '0',
+      financialYear: '2025-2026',
+      departmentid: '0',
+      pageNo: '1',
+      officeId: '0',
+      action: 'Search',
+      size: '10'
+    });
+
+    const listResponse = await axios.post(listUrl, postDataList.toString(), {
+      timeout: 15000,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Referer': 'https://www.eprocure.gov.bd/resources/common/SearchAPP.jsp',
+        'Origin': 'https://www.eprocure.gov.bd'
+      }
+    });
+
+    const listHtml = listResponse.data;
+    if (!listHtml || listHtml.trim().length === 0) {
+      throw new Error('Received empty response from SearchAPPServlet main list');
+    }
+
+    const completeListHtml = `<table>${listHtml}</table>`;
+    const $list = cheerio.load(completeListHtml);
+    const rows = $list('tr');
+
+    if (rows.length === 0) {
+      throw new Error('No rows found in e-GP APP main list');
+    }
+
+    logger.info(`📄 APP main list parsed successfully. Collecting all package detail paths across the first 10 PE offices...`);
+
+    const detailPathsToScrape = [];
+    let validPeOfficesProcessed = 0;
+    const maxPeOfficesToProcess = 10;
+
+    for (let r = 0; r < rows.length; r++) {
+      if (validPeOfficesProcessed >= maxPeOfficesToProcess) {
+        break;
+      }
+
+      const tds = $list(rows[r]).find('td');
+      if (tds.length < 5) continue;
+
+      const links = $list(tds[4]).find('a');
+      if (links.length === 0) continue;
+
+      // Extract officeId and budget types for this PE office
+      let officeId = '';
+      const bTypes = [];
+      links.each((i, link) => {
+        const href = $list(link).attr('href') || '';
+        const officeIdMatch = href.match(/officeId=(\d+)/);
+        const bTypeIdMatch = href.match(/bTypeId=(\d+)/);
+        if (officeIdMatch) officeId = officeIdMatch[1];
+        if (bTypeIdMatch) bTypes.push(bTypeIdMatch[1]);
+      });
+
+      if (!officeId) continue;
+
+      validPeOfficesProcessed++;
+      logger.info(`🔍 [${validPeOfficesProcessed}/${maxPeOfficesToProcess}] PE Office Row ${r + 1} - Office ID: ${officeId}. Checking budget types [${bTypes.join(', ')}]...`);
+
+      // Cycle budget types to find records for this PE office
+      for (const bType of bTypes) {
+        let pageNo = 1;
+        while (true) {
+          const postDataSearch = new URLSearchParams({
+            bTypeId: bType,
+            pageNo: String(pageNo),
+            office: officeId,
+            action: 'advSearch',
+            size: '10',
+            keyWord: 'null'
+          });
+
+          const searchResponse = await axios.post(listUrl, postDataSearch.toString(), {
+            timeout: 15000,
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+              'Referer': `https://www.eprocure.gov.bd/resources/common/StdSearch.jsp?officeId=${officeId}&bTypeId=${bType}`,
+              'Origin': 'https://www.eprocure.gov.bd'
+            }
+          });
+
+          const searchHtml = searchResponse.data;
+          if (!searchHtml || searchHtml.includes('No Records Found')) {
+            break; // Stop pagination if no records found or empty
+          }
+
+          const completeSearchHtml = `<table>${searchHtml}</table>`;
+          const $search = cheerio.load(completeSearchHtml);
+          const searchRows = $search('tr');
+
+          let pagePathsFound = 0;
+          for (let i = 0; i < searchRows.length; i++) {
+            const tdsSearch = $search(searchRows[i]).find('td');
+            if (tdsSearch.length < 5) continue;
+            
+            const linkSearch = $search(tdsSearch[4]).find('a');
+            if (linkSearch.length > 0) {
+              const onclick = linkSearch.attr('onclick') || '';
+              const pathMatch = onclick.match(/\/resources\/common\/ViewPackageDetail\.jsp\?[^']+/);
+              if (pathMatch) {
+                const detailPath = pathMatch[0];
+                const item = {
+                  path: detailPath,
+                  officeId,
+                  bType
+                };
+                // Ensure unique paths
+                if (!detailPathsToScrape.some(p => p.path === detailPath)) {
+                  detailPathsToScrape.push(item);
+                  pagePathsFound++;
+                }
+              }
+            }
+          }
+
+          if (pagePathsFound === 0) {
+            break; // Stop pagination if no new paths found on this page
+          }
+
+          pageNo++;
+        }
+      }
+    }
+
+    if (detailPathsToScrape.length === 0) {
+      throw new Error('Failed to find any valid package detail links in the search results');
+    }
+
+    logger.info(`🎯 Found ${detailPathsToScrape.length} package detail links to scrape. Starting detailed scraping...`);
+
+    const scrapedDocs = [];
+
+    // 4. Fetch and parse each corresponding detail page sequentially
+    for (let idx = 0; idx < detailPathsToScrape.length; idx++) {
+      const { path: detailPath, officeId, bType: chosenBType } = detailPathsToScrape[idx];
+      const detailUrl = `https://www.eprocure.gov.bd${detailPath}`;
+      logger.info(`🕷️ [${idx + 1}/${detailPathsToScrape.length}] Fetching detail page: ${detailUrl}`);
+
+      try {
+        const detailResponse = await axios.get(detailUrl, {
+          timeout: 15000,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Referer': `https://www.eprocure.gov.bd/resources/common/StdSearch.jsp?officeId=${officeId}&bTypeId=${chosenBType}`
+          }
+        });
+
+        const detailHtml = detailResponse.data;
+        if (!detailHtml || detailHtml.trim().length === 0) {
+          logger.warn(`⚠️ Received empty response from ViewPackageDetail.jsp for path: ${detailPath}`);
+          continue;
+        }
+
+        // 5. Parse all package and date fields from the detailed page
+        const $detail = cheerio.load(detailHtml);
+
+        const appId = findDetailValue($detail, 'APP ID');
+        const pkgIdMatch = detailPath.match(/pkgId=(\d+)/);
+        const pkgId = pkgIdMatch ? pkgIdMatch[1] : '';
+
+        if (!appId || !pkgId) {
+          logger.warn(`⚠️ Failed to parse appId (${appId}) or pkgId (${pkgId}) from detail path ${detailPath}`);
+          continue;
+        }
+
+        // Key information mapping
+        const ministry = findDetailValue($detail, 'Ministry');
+        const division = findDetailValue($detail, 'Division');
+        const organization = findDetailValue($detail, 'Organization');
+        const peOffice = findDetailValue($detail, 'PE Office and Code') || findDetailValue($detail, 'PE Office');
+        const projectName = findDetailValue($detail, 'Project Name');
+        const appCode = findDetailValue($detail, 'APP Code');
+        const financialYear = findDetailValue($detail, 'Financial Year');
+        const budgetType = findDetailValue($detail, 'Budget Type');
+        const advanceProcurementApp = findDetailValue($detail, 'Advance Procurement (APP)');
+        const procuringEntity = findDetailValue($detail, 'Procuring Entity');
+        const district = findDetailValue($detail, 'District');
+        const procurementNature = findDetailValue($detail, 'Procurement Nature');
+        const typeOfEmergency = findDetailValue($detail, 'Type of Emergency');
+        const serviceType = findDetailValue($detail, 'Service Type');
+        const advanceProcurementPackage = findDetailValue($detail, 'Advance Procurement (Package)');
+        const packageNo = findDetailValue($detail, 'Package No');
+        const packageDescription = findDetailValue($detail, 'Package Description');
+        
+        // Parse estimated cost safely
+        const estimatedCostStr = findDetailValue($detail, 'Package Estimated Cost (In BDT)') || findDetailValue($detail, 'Estimated Cost');
+        const packageEstimatedCost = parseFloat(estimatedCostStr.replace(/,/g, '')) || 0;
+
+        const category = findDetailValue($detail, 'Category');
+        const approvingAuthority = findDetailValue($detail, 'Approving Authority');
+        const procurementMethod = findDetailValue($detail, 'Procurement Method');
+        const procurementType = findDetailValue($detail, 'Procurement Type');
+        const packageType = findDetailValue($detail, 'Package Type');
+        const sourceOfFund = findDetailValue($detail, 'Source of Fund');
+        const developmentPartners = findDetailValue($detail, 'Development Partners');
+
+        // Parse Expected Dates
+        const dates = {
+          expectedDateOfAdvertisement: parseDetailDate(findDetailValue($detail, 'Expected Date of Advertisement of Tender/Proposal on e-GP website')),
+          expectedDateOfSubmission: parseDetailDate(findDetailValue($detail, 'Expected Date of submission of Tender/Proposal')),
+          expectedDateOfOpening: parseDetailDate(findDetailValue($detail, 'Expected Date of Opening of Tender/Proposal')),
+          expectedDateOfSubmissionEvaluation: parseDetailDate(findDetailValue($detail, 'Expected Date of Submission of Evaluation Report')),
+          expectedDateOfApprovalAward: parseDetailDate(findDetailValue($detail, 'Expected Date of Approval for Award of Contract')),
+          expectedDateOfIssuanceNOA: parseDetailDate(findDetailValue($detail, 'Expected Date of Issuance of the NOA')),
+          expectedDateOfSigningContract: parseDetailDate(findDetailValue($detail, 'Expected Date of Signing of Contract')),
+          expectedDateOfCompletionContract: parseDetailDate(findDetailValue($detail, 'Expected Date of Completion of Contract'))
+        };
+
+        const totalTimeStr = findDetailValue($detail, 'Total Time to Contract Signing');
+        const totalTimeToContractSigning = parseInt(totalTimeStr, 10) || 0;
+
+        // Parse Electronic Signature
+        let electronicallySignedBy = '';
+        $detail('td, th').each((i, el) => {
+          const txt = $detail(el).text().trim();
+          if (txt.toLowerCase().includes('electronically signed by')) {
+            electronicallySignedBy = txt.replace(/electronically signed by\s*:/i, '').trim();
+            return false;
+          }
+        });
+
+        const appPackageDoc = {
+          appId,
+          pkgId,
+          ministry,
+          division,
+          organization,
+          peOffice,
+          projectName,
+          appCode,
+          financialYear,
+          budgetType,
+          advanceProcurementApp,
+          procuringEntity,
+          district,
+          procurementNature,
+          typeOfEmergency,
+          serviceType,
+          advanceProcurementPackage,
+          packageNo,
+          packageDescription,
+          packageEstimatedCost,
+          category,
+          approvingAuthority,
+          procurementMethod,
+          procurementType,
+          packageType,
+          sourceOfFund,
+          developmentPartners,
+          dates,
+          totalTimeToContractSigning,
+          electronicallySignedBy,
+          scrapedAt: new Date()
+        };
+
+        // 6. Save and upsert in MongoDB or mock DB
+        if (process.env.MOCK_DB === 'true') {
+          logger.info(`🤖 Mock DB Mode: Saving scraped APP Package ID: ${appId} to local file...`);
+          const outPath = 'scraped_app_package_proof.json';
+          let existing = [];
+          try {
+            if (fs.existsSync(outPath)) {
+              existing = JSON.parse(fs.readFileSync(outPath, 'utf8'));
+            }
+          } catch (e) {}
+          
+          const existingIdx = existing.findIndex(item => item.appId === appId && item.pkgId === pkgId);
+          if (existingIdx !== -1) {
+            existing[existingIdx] = appPackageDoc;
+          } else {
+            existing.push(appPackageDoc);
+          }
+          fs.writeFileSync(outPath, JSON.stringify(existing, null, 2), 'utf8');
+        } else {
+          await collection.updateOne(
+            { appId, pkgId },
+            { $set: appPackageDoc },
+            { upsert: true }
+          );
+          logger.info(`✨ Successfully scraped and stored APP Package ID: ${appId}, Package ID: ${pkgId} in MongoDB!`);
+        }
+
+        scrapedDocs.push(appPackageDoc);
+      } catch (err) {
+        const errorMsg = /** @type {any} */ (err).message;
+        logger.error(`🔥 Failed to parse detailed package for path ${detailPath}: ${errorMsg}`);
+      }
+    }
+
+    logger.info(`🎉 Successfully scraped ${scrapedDocs.length} of ${detailPathsToScrape.length} APP packages!`);
+    return { success: true, count: scrapedDocs.length, data: scrapedDocs };
+
+  } catch (error) {
+    const err = /** @type {any} */ (error);
+    logger.error('🔥 Failed to scrape e-GP Annual Procurement Plan (APP):', err.message);
+    throw err;
+  }
+}
+

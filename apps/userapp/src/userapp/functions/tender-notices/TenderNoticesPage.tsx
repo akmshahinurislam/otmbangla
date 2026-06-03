@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { TreeNode, TenderNotice } from './types';
+import { getApiUrl } from '../../shared/config';
 import { CATEGORY_TREE, ORGANIZATION_TREE, DISTRICT_TREE, TENDER_NOTICES_DATA } from './constants';
 import { TenderCard } from './components/TenderCard';
 import { NotifyMeModal } from './components/NotifyMeModal';
@@ -15,12 +17,21 @@ const formatTenderDate = (dateStr: string) => {
   return `${day} ${month}, ${year}`;
 };
 export function TenderNoticesPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
+  const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  useEffect(() => {
+    if (urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+  }, [urlSearch]);
 
   // Default user email from localStorage
   const getAccountEmail = (): string => {
@@ -69,7 +80,7 @@ export function TenderNoticesPage() {
 
     async function loadActiveSubscription() {
       try {
-        const response = await fetch(`http://localhost:3003/api/alerts/subscription/${encodeURIComponent(userEmail)}`);
+        const response = await fetch(`${getApiUrl(3003)}/api/alerts/subscription/${encodeURIComponent(userEmail)}`);
         if (response.ok) {
           const subscription = await response.json();
           if (subscription) {
@@ -142,7 +153,7 @@ export function TenderNoticesPage() {
 
     try {
       setNotifyValidationErr('');
-      const response = await fetch('http://localhost:3003/api/alerts/subscribe', {
+      const response = await fetch(`${getApiUrl(3003)}/api/alerts/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -195,7 +206,7 @@ export function TenderNoticesPage() {
         if (dateFrom) params.append('dateFrom', dateFrom);
         if (dateTo) params.append('dateTo', dateTo);
 
-        const url = `http://localhost:3003/api/tenders?${params.toString()}`;
+        const url = `${getApiUrl(3003)}/api/tenders?${params.toString()}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch tenders');
         const data = await res.json();
@@ -426,6 +437,7 @@ export function TenderNoticesPage() {
     setOrgSearch('');
     setLocSearch('');
     setOpenDropdown(null);
+    setSearchParams({});
   };
 
   // 4. Dynamic Tender Filter Logic
@@ -444,21 +456,21 @@ export function TenderNoticesPage() {
     setSelected: React.Dispatch<React.SetStateAction<string[]>>;
   }) => {
     return (
-      <ul className="pl-3 mt-1.5 space-y-1.5 border-l border-neutral-100 dark:border-neutral-800">
+      <ul className="pl-3.5 mt-2 space-y-2 border-l border-neutral-100 dark:border-neutral-800">
         {nodes.map(node => {
           const isSelected = selectedIds.includes(node.id);
           const hasChildren = node.children && node.children.length > 0;
 
           return (
-            <li key={node.id} className="text-xs">
-              <label className="flex items-center gap-2 py-0.5 hover:text-main dark:hover:text-white cursor-pointer select-none">
+            <li key={node.id} className="text-sm">
+              <label className="flex items-center gap-2.5 py-1.5 hover:text-main dark:hover:text-white cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={isSelected}
                   onChange={(e) => toggleSelection(node.id, e.target.checked, treeRoot, setSelected)}
-                  className="h-3.5 w-3.5 rounded border-subtle text-accent-purple focus:ring-accent-purple dark:border-white/10 dark:bg-white/[0.03]"
+                  className="h-4.5 w-4.5 rounded border-subtle text-accent-purple focus:ring-accent-purple dark:border-white/10 dark:bg-white/[0.03]"
                 />
-                <span className={hasChildren ? "font-semibold text-main dark:text-neutral-200" : "text-secondary dark:text-neutral-400"}>
+                <span className={hasChildren ? "font-bold text-main dark:text-neutral-200" : "text-secondary dark:text-neutral-400 font-medium"}>
                   {node.text}
                 </span>
               </label>
@@ -595,10 +607,10 @@ export function TenderNoticesPage() {
       </section>
 
       {/* 2. Advanced Multi-Tree Filter Grid */}
-      <section className="rounded-xl border border-subtle bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.02]">
-        <h4 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Advanced BDTender Filters</h4>
+      <section className="rounded-2xl border border-subtle bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.02]">
+        <h4 className="text-sm font-bold text-muted uppercase tracking-wider mb-4">Advanced BDTender Filters</h4>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
           {/* Keyword Search */}
           <div className="relative">
             <input
@@ -606,10 +618,10 @@ export function TenderNoticesPage() {
               placeholder="Keyword or Tender ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-10 w-full rounded-lg border border-subtle bg-secondary-bg pl-9 pr-3 text-xs text-main placeholder-muted shadow-sm outline-none transition-all focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white"
+              className="h-12 w-full rounded-xl border border-subtle bg-secondary-bg pl-11 pr-4 text-sm text-main placeholder-muted shadow-sm outline-none transition-all focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white font-semibold"
             />
-            <svg className="absolute left-3.5 top-3 h-3.5 w-3.5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg className="absolute left-4 top-4 h-4 w-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
 
@@ -617,30 +629,30 @@ export function TenderNoticesPage() {
           <div className="relative" ref={categoryRef}>
             <button
               onClick={() => setOpenDropdown(prev => prev === 'category' ? null : 'category')}
-              className="flex h-10 w-full items-center justify-between rounded-lg border border-subtle bg-secondary-bg px-3.5 text-left text-xs text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
+              className="flex h-12 w-full items-center justify-between rounded-xl border border-subtle bg-secondary-bg px-4 text-left text-sm font-semibold text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
             >
               <span className="truncate">
                 {selectedCategories.length > 0 ? `Category (${selectedCategories.length})` : 'Category'}
               </span>
-              <svg className={`h-3.5 w-3.5 text-muted transition-transform duration-200 ${openDropdown === 'category' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg className={`h-4 w-4 text-muted transition-transform duration-200 ${openDropdown === 'category' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {openDropdown === 'category' && (
-              <div className="absolute left-0 z-20 mt-1.5 w-72 rounded-lg border border-subtle bg-white p-3 shadow-lg dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn">
-                <div className="relative mb-2">
+              <div className="absolute left-0 z-20 mt-2 w-80 rounded-2xl border border-subtle bg-white p-4 shadow-xl dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn">
+                <div className="relative mb-3">
                   <input
                     type="text"
                     placeholder="Search category..."
                     value={categorySearch}
                     onChange={(e) => setCategorySearch(e.target.value)}
-                    className="h-8 w-full rounded border border-subtle bg-secondary-bg pl-8 pr-2.5 text-xs text-main outline-none focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white"
+                    className="h-11 w-full rounded-xl border border-subtle bg-secondary-bg pl-10 pr-3.5 text-sm text-main outline-none focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white font-semibold"
                   />
-                  <svg className="absolute left-2.5 top-2.5 h-3 w-3 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg className="absolute left-3.5 top-3.5 h-4 w-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <div className="max-h-56 overflow-y-auto custom-scrollbar pr-1 pt-1">
+                <div className="max-h-60 overflow-y-auto custom-scrollbar pr-1 pt-1">
                   {filteredCategoryTree.length > 0 ? (
                     <RenderTreeList
                       nodes={filteredCategoryTree}
@@ -649,7 +661,7 @@ export function TenderNoticesPage() {
                       setSelected={setSelectedCategories}
                     />
                   ) : (
-                    <p className="text-center text-xs text-muted py-4">No categories found</p>
+                    <p className="text-center text-sm text-muted py-4">No categories found</p>
                   )}
                 </div>
               </div>
@@ -660,30 +672,30 @@ export function TenderNoticesPage() {
           <div className="relative" ref={orgRef}>
             <button
               onClick={() => setOpenDropdown(prev => prev === 'organization' ? null : 'organization')}
-              className="flex h-10 w-full items-center justify-between rounded-lg border border-subtle bg-secondary-bg px-3.5 text-left text-xs text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
+              className="flex h-12 w-full items-center justify-between rounded-xl border border-subtle bg-secondary-bg px-4 text-left text-sm font-semibold text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
             >
               <span className="truncate">
                 {selectedOrganizations.length > 0 ? `Organization (${selectedOrganizations.length})` : 'Organization'}
               </span>
-              <svg className={`h-3.5 w-3.5 text-muted transition-transform duration-200 ${openDropdown === 'organization' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg className={`h-4 w-4 text-muted transition-transform duration-200 ${openDropdown === 'organization' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {openDropdown === 'organization' && (
-              <div className="absolute left-0 z-20 mt-1.5 w-80 rounded-lg border border-subtle bg-white p-3 shadow-lg dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn">
-                <div className="relative mb-2">
+              <div className="absolute left-0 z-20 mt-2 w-80 rounded-2xl border border-subtle bg-white p-4 shadow-xl dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn">
+                <div className="relative mb-3">
                   <input
                     type="text"
                     placeholder="Search organization..."
                     value={orgSearch}
                     onChange={(e) => setOrgSearch(e.target.value)}
-                    className="h-8 w-full rounded border border-subtle bg-secondary-bg pl-8 pr-2.5 text-xs text-main outline-none focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white"
+                    className="h-11 w-full rounded-xl border border-subtle bg-secondary-bg pl-10 pr-3.5 text-sm text-main outline-none focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white font-semibold"
                   />
-                  <svg className="absolute left-2.5 top-2.5 h-3 w-3 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg className="absolute left-3.5 top-3.5 h-4 w-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <div className="max-h-56 overflow-y-auto custom-scrollbar pr-1 pt-1">
+                <div className="max-h-60 overflow-y-auto custom-scrollbar pr-1 pt-1">
                   {filteredOrganizationTree.length > 0 ? (
                     <RenderTreeList
                       nodes={filteredOrganizationTree}
@@ -692,7 +704,7 @@ export function TenderNoticesPage() {
                       setSelected={setSelectedOrganizations}
                     />
                   ) : (
-                    <p className="text-center text-xs text-muted py-4">No organizations found</p>
+                    <p className="text-center text-sm text-muted py-4">No organizations found</p>
                   )}
                 </div>
               </div>
@@ -703,30 +715,30 @@ export function TenderNoticesPage() {
           <div className="relative" ref={locationRef}>
             <button
               onClick={() => setOpenDropdown(prev => prev === 'location' ? null : 'location')}
-              className="flex h-10 w-full items-center justify-between rounded-lg border border-subtle bg-secondary-bg px-3.5 text-left text-xs text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
+              className="flex h-12 w-full items-center justify-between rounded-xl border border-subtle bg-secondary-bg px-4 text-left text-sm font-semibold text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
             >
               <span className="truncate">
                 {selectedLocations.length > 0 ? `Location (${selectedLocations.length})` : 'Location'}
               </span>
-              <svg className={`h-3.5 w-3.5 text-muted transition-transform duration-200 ${openDropdown === 'location' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg className={`h-4 w-4 text-muted transition-transform duration-200 ${openDropdown === 'location' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {openDropdown === 'location' && (
-              <div className="absolute right-0 lg:left-0 z-20 mt-1.5 w-72 rounded-lg border border-subtle bg-white p-3 shadow-lg dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn">
-                <div className="relative mb-2">
+              <div className="absolute right-0 lg:left-0 z-20 mt-2 w-80 rounded-2xl border border-subtle bg-white p-4 shadow-xl dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn">
+                <div className="relative mb-3">
                   <input
                     type="text"
                     placeholder="Search locations..."
                     value={locSearch}
                     onChange={(e) => setLocSearch(e.target.value)}
-                    className="h-8 w-full rounded border border-subtle bg-secondary-bg pl-8 pr-2.5 text-xs text-main outline-none focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white"
+                    className="h-11 w-full rounded-xl border border-subtle bg-secondary-bg pl-10 pr-3.5 text-sm text-main outline-none focus:border-accent-purple dark:border-white/10 dark:bg-white/[0.03] dark:text-white font-semibold"
                   />
-                  <svg className="absolute left-2.5 top-2.5 h-3 w-3 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg className="absolute left-3.5 top-3.5 h-4 w-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <div className="max-h-56 overflow-y-auto custom-scrollbar pr-1 pt-1">
+                <div className="max-h-60 overflow-y-auto custom-scrollbar pr-1 pt-1">
                   {filteredLocationTree.length > 0 ? (
                     <RenderTreeList
                       nodes={filteredLocationTree}
@@ -735,7 +747,7 @@ export function TenderNoticesPage() {
                       setSelected={setSelectedLocations}
                     />
                   ) : (
-                    <p className="text-center text-xs text-muted py-4">No locations found</p>
+                    <p className="text-center text-sm text-muted py-4">No locations found</p>
                   )}
                 </div>
               </div>
@@ -746,30 +758,30 @@ export function TenderNoticesPage() {
           <div className="relative" ref={calendarRef}>
             <button
               onClick={() => setOpenDropdown(prev => prev === 'calendar' ? null : 'calendar')}
-              className="flex h-10 w-full items-center justify-between rounded-lg border border-subtle bg-secondary-bg px-3.5 text-left text-xs text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
+              className="flex h-12 w-full items-center justify-between rounded-xl border border-subtle bg-secondary-bg px-4 text-left text-sm font-semibold text-secondary shadow-sm transition-all hover:bg-hover-surface dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300 dark:hover:bg-white/[0.05]"
             >
               <span className="truncate">
                 {dateDisplayString || 'Date from & to'}
               </span>
-              <svg className="h-3.5 w-3.5 text-muted shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg className="h-4 w-4 text-muted shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </button>
             {openDropdown === 'calendar' && (
-              <div className="absolute right-0 z-20 mt-1.5 w-72 rounded-lg border border-subtle bg-white p-4 shadow-lg dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn select-none">
+              <div className="absolute right-0 z-20 mt-2 w-80 rounded-2xl border border-subtle bg-white p-4 shadow-xl dark:border-neutral-800 dark:bg-neutral-900 animate-fadeIn select-none">
                 <div className="flex items-center justify-between mb-3">
-                  <button onClick={handlePrevMonth} className="p-1 hover:bg-hover-surface rounded text-secondary dark:text-neutral-400" type="button">&larr;</button>
+                  <button onClick={handlePrevMonth} className="p-1.5 hover:bg-hover-surface rounded text-secondary dark:text-neutral-400" type="button">&larr;</button>
                   <span className="text-xs font-bold text-main dark:text-white">
                     {calendarMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
                   </span>
-                  <button onClick={handleNextMonth} className="p-1 hover:bg-hover-surface rounded text-secondary dark:text-neutral-400" type="button">&rarr;</button>
+                  <button onClick={handleNextMonth} className="p-1.5 hover:bg-hover-surface rounded text-secondary dark:text-neutral-400" type="button">&rarr;</button>
                 </div>
                 
-                <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted mb-1.5">
+                <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-muted mb-1.5">
                   <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
                 </div>
                 
-                <div className="grid grid-cols-7 gap-1 text-center">
+                <div className="grid grid-cols-7 gap-1.5 text-center">
                   {calendarDays.map((day, idx) => {
                     if (!day.isCurrentMonth) {
                       return <div key={idx} className="h-7 w-7" />;

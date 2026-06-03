@@ -8,8 +8,8 @@ let server;
 
 async function startServer() {
   await initializeDatabase();
-  server = app.listen(PORT, () => {
-    logger.info(`🚀 Auth Service running on http://localhost:${PORT}`);
+  server = app.listen(Number(PORT), '0.0.0.0', () => {
+    logger.info(`🚀 Auth Service running on http://0.0.0.0:${PORT}`);
   });
 }
 
