@@ -552,11 +552,13 @@ export function ProjectLedgerPage({
   const [showAllocateCashModal, setShowAllocateCashModal] = useState(false);
   const [inviteStatusModal, setInviteStatusModal] = useState<{
     show: boolean;
-    success: boolean;
+    loading?: boolean;
+    success?: boolean;
     title: string;
     message: string;
     link?: string;
   } | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // New forms states
   const [newProjectName, setNewProjectName] = useState('');
@@ -946,6 +948,19 @@ export function ProjectLedgerPage({
       alert(lang === 'bn' ? 'সবগুলো ঘর পূরণ করুন এবং অন্তত একটি প্রজেক্ট সিলেক্ট করুন।' : 'Please fill in all fields and select at least one project.');
       return;
     }
+
+    // Reset copy state
+    setLinkCopied(false);
+
+    // Show loading modal immediately
+    setInviteStatusModal({
+      show: true,
+      loading: true,
+      title: lang === 'bn' ? 'আমন্ত্রণ পাঠানো হচ্ছে...' : 'Sending Invitation...',
+      message: lang === 'bn' 
+        ? 'দয়া করে অপেক্ষা করুন, ব্যাকএন্ড সার্ভার আমন্ত্রণ প্রক্রিয়া সম্পন্ন করছে।' 
+        : 'Please wait while the server processes the invitation.'
+    });
 
     try {
       const res = await fetch(`${getApiUrl(3001)}/api/auth/invite`, {
@@ -3654,60 +3669,97 @@ export function ProjectLedgerPage({
       {inviteStatusModal && inviteStatusModal.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn">
           <div className="w-full max-w-md rounded-2xl border border-[#E5E5E6] bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-neutral-900 transition-all">
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-full ${inviteStatusModal.success ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-950/30 dark:text-red-400'}`}>
-                {inviteStatusModal.success ? (
-                  <Check className="h-6 w-6" />
-                ) : (
-                  <X className="h-6 w-6" />
-                )}
-              </div>
-              <div>
-                <h3 className="text-lg font-extrabold text-[#08090A] dark:text-white leading-tight">
-                  {inviteStatusModal.title}
-                </h3>
-                <p className="text-xs text-neutral-400 font-semibold uppercase tracking-wider mt-0.5">
-                  {inviteStatusModal.success ? (lang === 'bn' ? 'নিরাপদ লেনদেন' : 'Secure operation') : (lang === 'bn' ? 'ত্রুটি বার্তা' : 'Error details')}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed font-semibold">
-                {inviteStatusModal.message}
-              </p>
-
-              {inviteStatusModal.link && (
-                <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950/50 border border-neutral-100 dark:border-white/5 p-3.5 space-y-2">
-                  <span className="block text-[10px] font-extrabold text-[#5E6AD2] dark:text-[#717CFF] uppercase tracking-wider">
-                    {lang === 'bn' ? 'সেট-পাসওয়ার্ড লিঙ্ক (Set Password Link)' : 'Set Password Link'}
-                  </span>
-                  <input
-                    type="text"
-                    readOnly
-                    value={inviteStatusModal.link}
-                    onClick={(e) => {
-                      (e.target as HTMLInputElement).select();
-                      navigator.clipboard.writeText(inviteStatusModal.link || '');
-                    }}
-                    className="block w-full rounded-lg border border-neutral-200 bg-white dark:bg-neutral-950 py-2 px-3 text-xs font-bold text-neutral-800 dark:text-neutral-200 outline-none cursor-pointer"
-                  />
-                  <p className="text-[10px] text-neutral-400 font-bold">
-                    {lang === 'bn' ? '💡 লিঙ্কের উপর ক্লিক করলে লিঙ্কটি কপি হয়ে যাবে।' : '💡 Click on the input field to select and copy.'}
+            {inviteStatusModal.loading ? (
+              // Loading/Processing State
+              <div className="flex flex-col items-center justify-center py-6 space-y-4">
+                <div className="relative h-12 w-12">
+                  <div className="absolute inset-0 rounded-full border-4 border-neutral-100 dark:border-neutral-800" />
+                  <div className="absolute inset-0 rounded-full border-4 border-t-[#5E6AD2] border-r-transparent border-b-transparent border-l-transparent animate-spin dark:border-t-[#717CFF]" />
+                </div>
+                <div className="text-center space-y-1">
+                  <h3 className="text-base font-bold text-[#08090A] dark:text-white leading-tight">
+                    {inviteStatusModal.title}
+                  </h3>
+                  <p className="text-xs text-neutral-400 font-semibold leading-relaxed">
+                    {inviteStatusModal.message}
                   </p>
                 </div>
-              )}
-
-              <div className="flex justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => setInviteStatusModal(null)}
-                  className="rounded-xl bg-[#5E6AD2] hover:bg-[#5E6AD2]/90 text-white dark:bg-[#717CFF] dark:hover:bg-[#717CFF]/90 px-5 py-3 text-sm font-bold shadow-sm transition-all cursor-pointer"
-                >
-                  {lang === 'bn' ? 'ঠিক আছে' : 'OK'}
-                </button>
               </div>
-            </div>
+            ) : (
+              // Success/Failure State
+              <>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${inviteStatusModal.success ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-950/30 dark:text-red-400'}`}>
+                    {inviteStatusModal.success ? (
+                      <Check className="h-6 w-6" />
+                    ) : (
+                      <X className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-[#08090A] dark:text-white leading-tight">
+                      {inviteStatusModal.title}
+                    </h3>
+                    <p className="text-xs text-neutral-400 font-semibold uppercase tracking-wider mt-0.5">
+                      {inviteStatusModal.success ? (lang === 'bn' ? 'নিরাপদ লেনদেন' : 'Secure operation') : (lang === 'bn' ? 'ত্রুটি বার্তা' : 'Error details')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed font-semibold">
+                    {inviteStatusModal.message}
+                  </p>
+
+                  {inviteStatusModal.link && (
+                    <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950/50 border border-neutral-100 dark:border-white/5 p-3.5 space-y-2.5">
+                      <span className="block text-[10px] font-extrabold text-[#5E6AD2] dark:text-[#717CFF] uppercase tracking-wider">
+                        {lang === 'bn' ? 'সেট-পাসওয়ার্ড লিঙ্ক (Set Password Link)' : 'Set Password Link'}
+                      </span>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={inviteStatusModal.link}
+                          className="block flex-1 rounded-lg border border-neutral-200 bg-white dark:bg-neutral-950 py-2.5 px-3 text-xs font-bold text-neutral-800 dark:text-neutral-200 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(inviteStatusModal.link || '');
+                            setLinkCopied(true);
+                            setTimeout(() => setLinkCopied(false), 2000);
+                          }}
+                          className="rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-2.5 flex items-center gap-1 transition-all shrink-0 cursor-pointer"
+                        >
+                          {linkCopied ? (
+                            <>
+                              <Check className="h-3.5 w-3.5" />
+                              <span>{lang === 'bn' ? 'কপি হয়েছে' : 'Copied'}</span>
+                            </>
+                          ) : (
+                            <span>{lang === 'bn' ? 'কপি করুন' : 'Copy'}</span>
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-neutral-400 font-bold">
+                        {lang === 'bn' ? '💡 বাটনে ক্লিক করে লিঙ্কটি কপি করুন এবং পিএম-কে পাঠান।' : '💡 Click the copy button to copy the setup link.'}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setInviteStatusModal(null)}
+                      className="rounded-xl bg-[#5E6AD2] hover:bg-[#5E6AD2]/90 text-white dark:bg-[#717CFF] dark:hover:bg-[#717CFF]/90 px-5 py-3 text-sm font-bold shadow-sm transition-all cursor-pointer"
+                    >
+                      {lang === 'bn' ? 'ঠিক আছে' : 'OK'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
