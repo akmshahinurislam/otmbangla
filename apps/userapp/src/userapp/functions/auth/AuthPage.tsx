@@ -309,11 +309,9 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
       <div className="w-full max-w-md space-y-8 animate-fadeIn">
         <div className="flex flex-col items-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-subtle bg-white text-xl font-bold text-[#5E6AD2] shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-[#717CFF]">
-            UA
-          </div>
+          <img src="/21feb.png" className="h-16 w-16 object-contain rounded-2xl shadow-sm mb-2" alt="OTM Bangla Logo" />
           <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight text-[#08090A] dark:text-white font-sans">
-            Welcome to UserApp
+            Welcome to OTM Bangla
           </h2>
           <p className="mt-3 text-center text-base text-[#62666D] dark:text-neutral-400">
             {isLogin ? 'Access your workspace and functions' : 'Create your secure developer workspace'}

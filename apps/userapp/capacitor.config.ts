@@ -2,12 +2,10 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.otmbangla.userapp',
-  appName: 'OTM Bangla User App',
+  appName: 'OTM Bangla',
   webDir: 'dist',
   server: {
-    androidScheme: 'http',
-    cleartext: true,
-    url: 'http://192.168.1.5:5173'
+    androidScheme: 'https'
   }
 };
 
