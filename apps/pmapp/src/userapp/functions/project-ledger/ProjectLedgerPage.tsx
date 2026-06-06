@@ -550,6 +550,13 @@ export function ProjectLedgerPage({
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
   const [showInviteMemberModal, setShowInviteMemberModal] = useState(false);
   const [showAllocateCashModal, setShowAllocateCashModal] = useState(false);
+  const [inviteStatusModal, setInviteStatusModal] = useState<{
+    show: boolean;
+    success: boolean;
+    title: string;
+    message: string;
+    link?: string;
+  } | null>(null);
 
   // New forms states
   const [newProjectName, setNewProjectName] = useState('');
@@ -958,12 +965,24 @@ export function ProjectLedgerPage({
       if (res.ok) {
         if (data.fallbackUrl) {
           console.log(`[ProjectLedgerPage] Email dispatch failed. Fallback invite link: ${data.fallbackUrl}`);
-          alert(lang === 'bn' 
-            ? `আমন্ত্রণ তৈরি করা হয়েছে (ইমেইল সার্ভার এর ত্রুটির কারণে লিঙ্ক নিচে দেওয়া হলো, পিএম কে এটি পাঠান):\n${data.fallbackUrl}`
-            : `Invitation created (Email failed, share link below with PM):\n${data.fallbackUrl}`
-          );
+          setInviteStatusModal({
+            show: true,
+            success: true,
+            title: lang === 'bn' ? 'আমন্ত্রণ সফল (ইমেইল ত্রুটি)' : 'Invitation Created (Email Failed)',
+            message: lang === 'bn' 
+              ? 'টিম মেম্বার সফলভাবে যুক্ত হয়েছে। তবে ইমেইল পাঠানো যায়নি। দয়া করে নিচের সেট-পাসওয়ার্ড লিঙ্কটি কপি করে তাকে পাঠান:'
+              : 'Team member added successfully, but email dispatch failed. Please copy the set-password link below and send it to them:',
+            link: data.fallbackUrl
+          });
         } else {
-          alert(lang === 'bn' ? 'আমন্ত্রণ ইমেল সফলভাবে পাঠানো হয়েছে!' : 'Invitation email sent successfully!');
+          setInviteStatusModal({
+            show: true,
+            success: true,
+            title: lang === 'bn' ? 'আমন্ত্রণ সফল' : 'Invitation Successful',
+            message: lang === 'bn' 
+              ? 'টিম মেম্বারের ইমেইলে সফলভাবে আমন্ত্রণপত্র পাঠানো হয়েছে!'
+              : 'The invitation email has been sent successfully to the team member!'
+          });
         }
         await fetchLedgerData();
         setShowInviteMemberModal(false);
@@ -973,10 +992,33 @@ export function ProjectLedgerPage({
         setNewMemberPhone('');
         setNewMemberProjectCodes([]);
       } else {
-        alert(data.error || 'Failed to invite member');
+        let errMsg = data.error || '';
+        if (lang === 'bn') {
+          if (data.error === 'A team member with this email address already exists.') {
+            errMsg = 'এই ইমেইল এড্রেস দিয়ে ইতিমধ্যেই একজন টিম মেম্বার যুক্ত আছেন।';
+          } else if (data.error === 'A team member with this phone number already exists.') {
+            errMsg = 'এই ফোন নম্বর দিয়ে ইতিমধ্যেই একজন টিম মেম্বার যুক্ত আছেন।';
+          } else if (data.error === 'Missing required fields: email, name, role, phone are all required.') {
+            errMsg = 'সবগুলো তথ্য প্রদান করা আবশ্যক (ইমেল, নাম, রোল, ফোন)।';
+          } else {
+            errMsg = data.error || 'আমন্ত্রণ পাঠানো যায়নি।';
+          }
+        }
+        setInviteStatusModal({
+          show: true,
+          success: false,
+          title: lang === 'bn' ? 'আমন্ত্রণ ব্যর্থ' : 'Invitation Failed',
+          message: errMsg || (lang === 'bn' ? 'আমন্ত্রণ পাঠানো যায়নি।' : 'Failed to send invitation.')
+        });
       }
     } catch (err) {
       console.error("Error inviting member:", err);
+      setInviteStatusModal({
+        show: true,
+        success: false,
+        title: lang === 'bn' ? 'আমন্ত্রণ ত্রুটি' : 'Invitation Error',
+        message: lang === 'bn' ? 'নেটওয়ার্ক বা সার্ভার সমস্যা।' : 'Network or server communication error.'
+      });
     }
   };
 
@@ -3603,6 +3645,68 @@ export function ProjectLedgerPage({
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Invite Status Dialog Modal */}
+      {inviteStatusModal && inviteStatusModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn">
+          <div className="w-full max-w-md rounded-2xl border border-[#E5E5E6] bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-neutral-900 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`flex h-12 w-12 items-center justify-center rounded-full ${inviteStatusModal.success ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-950/30 dark:text-red-400'}`}>
+                {inviteStatusModal.success ? (
+                  <Check className="h-6 w-6" />
+                ) : (
+                  <X className="h-6 w-6" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-[#08090A] dark:text-white leading-tight">
+                  {inviteStatusModal.title}
+                </h3>
+                <p className="text-xs text-neutral-400 font-semibold uppercase tracking-wider mt-0.5">
+                  {inviteStatusModal.success ? (lang === 'bn' ? 'নিরাপদ লেনদেন' : 'Secure operation') : (lang === 'bn' ? 'ত্রুটি বার্তা' : 'Error details')}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed font-semibold">
+                {inviteStatusModal.message}
+              </p>
+
+              {inviteStatusModal.link && (
+                <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950/50 border border-neutral-100 dark:border-white/5 p-3.5 space-y-2">
+                  <span className="block text-[10px] font-extrabold text-[#5E6AD2] dark:text-[#717CFF] uppercase tracking-wider">
+                    {lang === 'bn' ? 'সেট-পাসওয়ার্ড লিঙ্ক (Set Password Link)' : 'Set Password Link'}
+                  </span>
+                  <input
+                    type="text"
+                    readOnly
+                    value={inviteStatusModal.link}
+                    onClick={(e) => {
+                      (e.target as HTMLInputElement).select();
+                      navigator.clipboard.writeText(inviteStatusModal.link || '');
+                    }}
+                    className="block w-full rounded-lg border border-neutral-200 bg-white dark:bg-neutral-950 py-2 px-3 text-xs font-bold text-neutral-800 dark:text-neutral-200 outline-none cursor-pointer"
+                  />
+                  <p className="text-[10px] text-neutral-400 font-bold">
+                    {lang === 'bn' ? '💡 লিঙ্কের উপর ক্লিক করলে লিঙ্কটি কপি হয়ে যাবে।' : '💡 Click on the input field to select and copy.'}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setInviteStatusModal(null)}
+                  className="rounded-xl bg-[#5E6AD2] hover:bg-[#5E6AD2]/90 text-white dark:bg-[#717CFF] dark:hover:bg-[#717CFF]/90 px-5 py-3 text-sm font-bold shadow-sm transition-all cursor-pointer"
+                >
+                  {lang === 'bn' ? 'ঠিক আছে' : 'OK'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -591,7 +591,10 @@ app.post('/api/auth/invite', async (req, res) => {
     }
 
     // Modern Design invitation Email
-    const appUrl = `http://localhost:5174/set-password?token=${token}`;
+    const pmAppUrl = process.env.PM_APP_URL || 'https://otmbangla-pmapp.vercel.app';
+    const appUrl = (process.env.NODE_ENV === 'production' || process.env.PM_APP_URL)
+      ? `${pmAppUrl.replace(/\/$/, '')}/set-password?token=${token}`
+      : `http://localhost:5174/set-password?token=${token}`;
     const htmlContent = `
       <div style="font-family: 'Outfit', 'Inter', 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; border: 1px solid rgba(229, 229, 230, 0.5); border-radius: 24px; background-color: #ffffff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);">
         <div style="text-align: center; margin-bottom: 32px;">
