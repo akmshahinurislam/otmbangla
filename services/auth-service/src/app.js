@@ -599,68 +599,16 @@ app.post('/api/auth/invite', async (req, res) => {
       );
     }
 
-    // Modern Design invitation Email
+    // Modern Design invitation link (Generated setup URL)
     const pmAppUrl = process.env.PM_APP_URL || 'https://otmbangla-pmapp.vercel.app';
-    const appUrl = (process.env.NODE_ENV === 'production' || process.env.PM_APP_URL)
-      ? `${pmAppUrl.replace(/\/$/, '')}/set-password?token=${token}`
-      : `http://localhost:5174/set-password?token=${token}`;
-    const htmlContent = `
-      <div style="font-family: 'Outfit', 'Inter', 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; border: 1px solid rgba(229, 229, 230, 0.5); border-radius: 24px; background-color: #ffffff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);">
-        <div style="text-align: center; margin-bottom: 32px;">
-          <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=120&q=80" alt="OTMBangla Construction Portal" style="height: 60px; width: 60px; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); margin-bottom: 12px;" />
-          <h2 style="color: #08090A; margin: 0; font-size: 24px; font-weight: 800; tracking: -0.5px;">OTMBangla Team Invitation</h2>
-          <p style="font-size: 13px; color: #8A8F98; font-weight: 500; margin-top: 4px; text-transform: uppercase; letter-spacing: 1.5px;">Security & Management System</p>
-        </div>
-        
-        <p style="font-size: 15px; color: #08090a; line-height: 1.6; margin-bottom: 16px;">Hello <strong>${name}</strong>,</p>
-        <p style="font-size: 15px; color: #62666d; line-height: 1.6; margin-bottom: 24px;">You have been invited by the Owner (${ownerEmail || 'admin@otmbangla.com'}) to join <strong>OTMBangla BDTender & Project Management Portal</strong> in the role of <span style="background-color: #F3F4F6; color: #5E6AD2; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${role}</span>.</p>
-        
-        ${projectCodes && projectCodes.length > 0 ? `
-          <div style="background-color: #F9FAFB; border: 1px solid #E5E5E6; border-radius: 16px; padding: 20px; margin-bottom: 28px;">
-            <p style="font-size: 12px; color: #8A8F98; font-weight: 800; text-transform: uppercase; margin: 0 0 12px 0; letter-spacing: 0.5px;">Assigned Projects</p>
-            <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #08090a; line-height: 1.6; font-weight: 600;">
-              ${projectCodes.map((/** @type {any} */ code) => `<li style="margin-bottom: 6px;">${code}</li>`).join('')}
-            </ul>
-          </div>
-        ` : ''}
+    const appUrl = `${pmAppUrl.replace(/\/$/, '')}/set-password?token=${token}`;
 
-        <p style="font-size: 14px; color: #62666d; line-height: 1.6; margin-bottom: 28px;">To activate your manager account, configure your private password, and access your project dashboard, click the button below:</p>
-        
-        <div style="text-align: center; margin: 36px 0;">
-          <a href="${appUrl}" target="_blank" style="background-color: #5E6AD2; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-size: 14px; font-weight: 800; display: inline-block; box-shadow: 0 8px 16px rgba(94, 106, 210, 0.2); transition: all 0.2s ease; border: 1px solid #5E6AD2;">
-            Set Password & Join Team
-          </a>
-        </div>
-        
-        <div style="background-color: #FFFBEB; border: 1px solid #FEF3C7; border-radius: 12px; padding: 12px 16px; margin-bottom: 32px; text-align: left;">
-          <p style="font-size: 12px; color: #B45309; line-height: 1.5; font-weight: 600; margin: 0;">⚠️ Security Notice: This invitation is secure, encrypted, and will expire automatically in <strong>24 hours</strong>. If you did not expect this request, please contact the administrator.</p>
-        </div>
-        
-        <hr style="border: 0; border-top: 1px solid #E5E5E6; margin: 28px 0;" />
-        <p style="font-size: 11px; color: #8A8F98; line-height: 1.5; text-align: center; margin: 0;">
-          Sent automatically by OTMBangla Portal. If you require technical assistance, please contact <a href="mailto:support@banglasolution.com" style="color: #5E6AD2; text-decoration: none; font-weight: 600;">support@banglasolution.com</a>.
-        </p>
-      </div>
-    `;
-
-    // Send invitation email
-    const emailSent = await sendMail({
-      to: email,
-      subject: `Invite: Join OTMBangla as ${role}`,
-      html: htmlContent
+    logger.info(`✉️ Invitation link created successfully for ${email}: ${appUrl}`);
+    
+    res.status(200).json({ 
+      message: 'Team member created successfully. Send the link to the Project Manager.',
+      fallbackUrl: appUrl 
     });
-
-    if (emailSent) {
-      logger.info(`✉️ Invitation email sent successfully to ${email}`);
-      res.status(200).json({ message: 'Invitation email sent successfully!' });
-    } else {
-      logger.error(`🔥 Failed to send invitation email to ${email}, fallback invite link: ${appUrl}`);
-      // Return 200 with fallback link in description in case SMTP fails during development/testing
-      res.status(200).json({ 
-        message: 'Team member created, but email dispatch failed. Set password manually using this link.',
-        fallbackUrl: appUrl 
-      });
-    }
 
   } catch (error) {
     logger.error('🔥 Invite member endpoint error:', error);
