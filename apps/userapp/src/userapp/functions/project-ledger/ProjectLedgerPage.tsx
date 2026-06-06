@@ -5,6 +5,7 @@ import {
   Calendar, Building, MapPin, CreditCard, HelpCircle, UserPlus, RefreshCw,
   Trash2, ArrowUpRight, ArrowDownLeft
 } from 'lucide-react';
+import { getApiUrl } from '../../shared/config';
 
 // --- TYPES ---
 interface Project {
@@ -477,43 +478,44 @@ export function ProjectLedgerPage({
     return TRANSLATIONS[lang][key] || TRANSLATIONS.en[key] || key;
   };
 
+  // Get active user details from local storage
+  const user = useMemo(() => {
+    const savedUser = localStorage.getItem('userapp-user');
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      return null;
+    }
+  }, []);
+
   // --- DATABASE STATES ---
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem('otm_projects_v3');
-    return saved ? JSON.parse(saved) : DEFAULT_PROJECTS;
-  });
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [allocations, setAllocations] = useState<Allocation[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  const [team, setTeam] = useState<TeamMember[]>(() => {
-    const saved = localStorage.getItem('otm_team_v2');
-    return saved ? JSON.parse(saved) : DEFAULT_TEAM;
-  });
-
-  const [allocations, setAllocations] = useState<Allocation[]>(() => {
-    const saved = localStorage.getItem('otm_allocations_v2');
-    return saved ? JSON.parse(saved) : DEFAULT_ALLOCATIONS;
-  });
-
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    const saved = localStorage.getItem('otm_expenses_v2');
-    return saved ? JSON.parse(saved) : DEFAULT_EXPENSES;
-  });
-
-  // Save changes to localStorage
-  useEffect(() => {
-    localStorage.setItem('otm_projects_v3', JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem('otm_team_v2', JSON.stringify(team));
-  }, [team]);
+  const fetchLedgerData = async () => {
+    try {
+      const email = user?.email || '';
+      const role = user?.role || '';
+      
+      const projRes = await fetch(`${getApiUrl(3001)}/api/ledger/projects?email=${encodeURIComponent(email)}&role=${encodeURIComponent(role)}`);
+      const teamRes = await fetch(`${getApiUrl(3001)}/api/ledger/team`);
+      const allocRes = await fetch(`${getApiUrl(3001)}/api/ledger/allocations?email=${encodeURIComponent(email)}&role=${encodeURIComponent(role)}`);
+      const expRes = await fetch(`${getApiUrl(3001)}/api/ledger/expenses?email=${encodeURIComponent(email)}&role=${encodeURIComponent(role)}`);
+      
+      if (projRes.ok) setProjects(await projRes.json());
+      if (teamRes.ok) setTeam(await teamRes.json());
+      if (allocRes.ok) setAllocations(await allocRes.json());
+      if (expRes.ok) setExpenses(await expRes.json());
+    } catch (err) {
+      console.error("Failed to fetch ledger data", err);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem('otm_allocations_v2', JSON.stringify(allocations));
-  }, [allocations]);
-
-  useEffect(() => {
-    localStorage.setItem('otm_expenses_v2', JSON.stringify(expenses));
-  }, [expenses]);
+    fetchLedgerData();
+  }, [user]);
 
   // --- UI STATES ---
   const [activeTab, setActiveTab] = useState<'desktop' | 'mobile'>('desktop');
@@ -578,37 +580,43 @@ export function ProjectLedgerPage({
   const [adminExpenseVendor, setAdminExpenseVendor] = useState('');
   const [adminExpenseNotes, setAdminExpenseNotes] = useState('');
 
-  const handleAdminSubmitExpense = (e: React.FormEvent) => {
+  const handleAdminSubmitExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminExpenseProjectCode || !adminExpenseTitle || !adminExpenseAmount) return;
 
-    const amountNum = parseFloat(adminExpenseAmount);
-
-    const newExp: Expense = {
-      id: 'exp-' + Date.now(),
-      projectCode: adminExpenseProjectCode,
-      teamEmail: 'admin@otmbangla.com', // Logged directly by Owner/Admin
-      title: adminExpenseTitle,
-      amount: amountNum,
-      category: 'Others', // No category select requested
-      date: new Date().toISOString().split('T')[0],
-      type: adminExpenseType,
-      vendor: adminExpenseType === 'baki' ? adminExpenseVendor : undefined,
-      notes: adminExpenseNotes || undefined,
-      isSettled: false
-    };
-
-    setExpenses([newExp, ...expenses]);
-
-    setShowAdminExpenseModal(false);
-    setAdminExpenseProjectCode('');
-    setAdminExpenseTitle('');
-    setAdminExpenseAmount('');
-    setAdminExpenseType('cash');
-    setAdminExpenseVendor('');
-    setAdminExpenseNotes('');
-
-    alert(lang === 'bn' ? 'খরচ সফলভাবে লোগ করা হয়েছে!' : 'Expense logged successfully!');
+    try {
+      const res = await fetch(`${getApiUrl(3001)}/api/ledger/expenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectCode: adminExpenseProjectCode,
+          teamEmail: user?.email || 'admin@otmbangla.com',
+          title: adminExpenseTitle,
+          amount: parseFloat(adminExpenseAmount),
+          category: 'Others',
+          date: new Date().toISOString().split('T')[0],
+          type: adminExpenseType,
+          vendor: adminExpenseType === 'baki' ? adminExpenseVendor : undefined,
+          notes: adminExpenseNotes || undefined
+        })
+      });
+      if (res.ok) {
+        await fetchLedgerData();
+        setShowAdminExpenseModal(false);
+        setAdminExpenseProjectCode('');
+        setAdminExpenseTitle('');
+        setAdminExpenseAmount('');
+        setAdminExpenseType('cash');
+        setAdminExpenseVendor('');
+        setAdminExpenseNotes('');
+        alert(lang === 'bn' ? 'খরচ সফলভাবে লোগ করা হয়েছে!' : 'Expense logged successfully!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit expense');
+      }
+    } catch (err) {
+      console.error("Error submitting expense:", err);
+    }
   };
 
   // Mobile App Simulator Form states
@@ -889,65 +897,84 @@ export function ProjectLedgerPage({
 
 
   // --- HANDLERS ---
-  const handleAddProject = (e: React.FormEvent) => {
+  const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProjectName || !newProjectCode || !newProjectBudget) return;
 
-    const newProj: Project = {
-      id: 'p-' + (projects.length + 1),
-      name: newProjectName,
-      code: newProjectCode.trim().toUpperCase(),
-      location: newProjectLocation,
-      budget: parseFloat(newProjectBudget),
-      ownerEmail: 'admin@otmbangla.com',
-      teamEmails: []
-    };
-
-    setProjects([...projects, newProj]);
-    setShowAddProjectModal(false);
-    setNewProjectName('');
-    setNewProjectCode('');
-    setNewProjectLocation('');
-    setNewProjectBudget('');
+    try {
+      const res = await fetch(`${getApiUrl(3001)}/api/ledger/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newProjectName,
+          code: newProjectCode.trim().toUpperCase(),
+          location: newProjectLocation,
+          budget: parseFloat(newProjectBudget),
+          ownerEmail: user?.email || 'admin@otmbangla.com',
+          teamEmails: []
+        })
+      });
+      if (res.ok) {
+        await fetchLedgerData();
+        setShowAddProjectModal(false);
+        setNewProjectName('');
+        setNewProjectCode('');
+        setNewProjectLocation('');
+        setNewProjectBudget('');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to add project');
+      }
+    } catch (err) {
+      console.error("Error adding project:", err);
+    }
   };
 
-  const handleInviteMember = (e: React.FormEvent) => {
+  const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMemberEmail || !newMemberName || newMemberProjectCodes.length === 0) {
+    if (!newMemberEmail || !newMemberName || newMemberProjectCodes.length === 0 || !newMemberPhone) {
       alert(lang === 'bn' ? 'সবগুলো ঘর পূরণ করুন এবং অন্তত একটি প্রজেক্ট সিলেক্ট করুন।' : 'Please fill in all fields and select at least one project.');
       return;
     }
 
-    if (team.some(t => t.email.toLowerCase() === newMemberEmail.toLowerCase())) {
-      alert(lang === 'bn' ? 'এই ইমেইল দিয়ে ইতিপূর্বে মেম্বার যোগ করা হয়েছে।' : 'A team member with this email already exists.');
-      return;
-    }
+    try {
+      const res = await fetch(`${getApiUrl(3001)}/api/auth/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newMemberName,
+          email: newMemberEmail.trim().toLowerCase(),
+          role: newMemberRole,
+          phone: newMemberPhone,
+          projectCodes: newMemberProjectCodes,
+          ownerEmail: user?.email || 'admin@otmbangla.com'
+        })
+      });
 
-    const newM: TeamMember = {
-      email: newMemberEmail.trim().toLowerCase(),
-      name: newMemberName,
-      role: newMemberRole,
-      phone: newMemberPhone
-    };
-
-    setTeam([...team, newM]);
-
-    setProjects(projects.map(p => {
-      if (newMemberProjectCodes.includes(p.code)) {
-        return {
-          ...p,
-          teamEmails: [...p.teamEmails, newM.email]
-        };
+      const data = await res.json();
+      if (res.ok) {
+        if (data.fallbackUrl) {
+          console.log(`[ProjectLedgerPage] Email dispatch failed. Fallback invite link: ${data.fallbackUrl}`);
+          alert(lang === 'bn' 
+            ? `আমন্ত্রণ তৈরি করা হয়েছে (ইমেইল সার্ভার এর ত্রুটির কারণে লিঙ্ক নিচে দেওয়া হলো, পিএম কে এটি পাঠান):\n${data.fallbackUrl}`
+            : `Invitation created (Email failed, share link below with PM):\n${data.fallbackUrl}`
+          );
+        } else {
+          alert(lang === 'bn' ? 'আমন্ত্রণ ইমেল সফলভাবে পাঠানো হয়েছে!' : 'Invitation email sent successfully!');
+        }
+        await fetchLedgerData();
+        setShowInviteMemberModal(false);
+        setNewMemberEmail('');
+        setNewMemberName('');
+        setNewMemberRole('Project Manager');
+        setNewMemberPhone('');
+        setNewMemberProjectCodes([]);
+      } else {
+        alert(data.error || 'Failed to invite member');
       }
-      return p;
-    }));
-
-    setShowInviteMemberModal(false);
-    setNewMemberEmail('');
-    setNewMemberName('');
-    setNewMemberRole('Project Manager');
-    setNewMemberPhone('');
-    setNewMemberProjectCodes([]);
+    } catch (err) {
+      console.error("Error inviting member:", err);
+    }
   };
 
   const handleToggleProjectSelection = (code: string) => {
@@ -958,39 +985,61 @@ export function ProjectLedgerPage({
     }
   };
 
-  const handleAllocateCash = (e: React.FormEvent) => {
+  const handleAllocateCash = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!allocAmount || !allocEmail || !allocProjectCode) return;
 
-    const amountNum = parseFloat(allocAmount);
-
-    const newAlloc: Allocation = {
-      id: 'a-' + (allocations.length + 1),
-      projectCode: allocProjectCode,
-      teamEmail: allocEmail,
-      amount: amountNum,
-      date: new Date().toISOString().split('T')[0],
-      method: allocMethod,
-      notes: allocNotes
-    };
-
-    setAllocations([...allocations, newAlloc]);
-
-    setShowAllocateCashModal(false);
-    setAllocAmount('');
-    setAllocEmail('');
-    setAllocProjectCode('');
-    setAllocNotes('');
+    try {
+      const res = await fetch(`${getApiUrl(3001)}/api/ledger/allocations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectCode: allocProjectCode,
+          teamEmail: allocEmail,
+          amount: parseFloat(allocAmount),
+          date: new Date().toISOString().split('T')[0],
+          method: allocMethod,
+          notes: allocNotes
+        })
+      });
+      if (res.ok) {
+        await fetchLedgerData();
+        setShowAllocateCashModal(false);
+        setAllocAmount('');
+        setAllocEmail('');
+        setAllocProjectCode('');
+        setAllocNotes('');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to allocate cash');
+      }
+    } catch (err) {
+      console.error("Error allocating cash:", err);
+    }
   };
 
-  const handleVoidExpense = (expenseId: string) => {
+  const handleVoidExpense = async (expenseId: string) => {
     if (window.confirm(t('voidAlert'))) {
-      setExpenses(expenses.filter(e => e.id !== expenseId));
+      try {
+         const res = await fetch(`${getApiUrl(3001)}/api/ledger/void-expense`, {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ expenseId })
+         });
+         if (res.ok) {
+           await fetchLedgerData();
+         } else {
+           const data = await res.json();
+           alert(data.error || 'Failed to void expense');
+         }
+      } catch (err) {
+        console.error("Error voiding expense:", err);
+      }
     }
   };
 
   // Scenario A Settle Due handler
-  const handleSettleDueDirectly = (expenseId: string) => {
+  const handleSettleDueDirectly = async (expenseId: string) => {
     const exp = expenses.find(e => e.id === expenseId);
     if (!exp) return;
 
@@ -998,12 +1047,26 @@ export function ProjectLedgerPage({
       ? `সিনারিও A: মেসার্স ${exp.vendor || 'সরবরাহকারী'}-এর বকেয়া ৳${exp.amount.toLocaleString()} কি সরাসরি ওনার ব্যাংক অ্যাকাউন্ট থেকে পরিশোধ করা হয়েছে?`
       : `Scenario A: Settle Baki due of BDT ${exp.amount.toLocaleString()} to vendor ${exp.vendor || 'Supplier'} directly from Owner account?`
     )) {
-      setExpenses(expenses.map(e => {
-        if (e.id === expenseId) {
-          return { ...e, isSettled: true }; // Flag it settled directly
+      try {
+        const res = await fetch(`${getApiUrl(3001)}/api/ledger/settle`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            expenseId,
+            amount: exp.amount,
+            method: 'direct',
+            notes: 'Direct settlement by Owner'
+          })
+        });
+        if (res.ok) {
+          await fetchLedgerData();
+        } else {
+          const data = await res.json();
+          alert(data.error || 'Failed to settle due');
         }
-        return e;
-      }));
+      } catch (err) {
+        console.error("Error settling due:", err);
+      }
     }
   };
 
@@ -1036,7 +1099,7 @@ export function ProjectLedgerPage({
     return getPmProjectBalance(activePm.email, simActiveProjectCode);
   }, [activePm, simActiveProjectCode, allocations, expenses]);
 
-  const handleMobileSubmitExpense = (e: React.FormEvent) => {
+  const handleMobileSubmitExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!simExpenseTitle || !simExpenseAmount || !activePm || !simActiveProjectCode) return;
 
@@ -1048,43 +1111,52 @@ export function ProjectLedgerPage({
       }
     }
 
-    const newExp: Expense = {
-      id: 'e-' + (expenses.length + 1),
-      projectCode: simActiveProjectCode,
-      teamEmail: activePm.email,
-      title: simExpenseTitle,
-      amount: amountNum,
-      category: simExpenseCategory,
-      date: new Date().toISOString().split('T')[0],
-      type: simExpenseType,
-      vendor: simExpenseType === 'baki' ? simExpenseVendor : undefined,
-      notes: simExpenseNotes || undefined,
-      receiptMockIdx: simExpenseReceiptIdx !== null ? simExpenseReceiptIdx : undefined,
-      isSettled: false
-    };
+    try {
+      const res = await fetch(`${getApiUrl(3001)}/api/ledger/expenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectCode: simActiveProjectCode,
+          teamEmail: activePm.email,
+          title: simExpenseTitle,
+          amount: amountNum,
+          category: simExpenseCategory,
+          date: new Date().toISOString().split('T')[0],
+          type: simExpenseType,
+          vendor: simExpenseType === 'baki' ? simExpenseVendor : undefined,
+          notes: simExpenseNotes || undefined,
+          receiptMockIdx: simExpenseReceiptIdx !== null ? simExpenseReceiptIdx : undefined
+        })
+      });
+      if (res.ok) {
+        await fetchLedgerData();
+        const rawMsg = simExpenseType === 'cash' ? t('successCashMsg') : t('successBakiMsg');
+        const msg = rawMsg
+          .replace('{code}', simActiveProjectCode)
+          .replace('{amount}', amountNum.toLocaleString())
+          .replace('{vendor}', simExpenseVendor);
 
-    setExpenses([...expenses, newExp]);
+        setSimNotifyMsg({
+          text: msg,
+          type: 'success'
+        });
 
-    const rawMsg = simExpenseType === 'cash' ? t('successCashMsg') : t('successBakiMsg');
-    const msg = rawMsg
-      .replace('{code}', simActiveProjectCode)
-      .replace('{amount}', amountNum.toLocaleString())
-      .replace('{vendor}', simExpenseVendor);
+        setSimExpenseTitle('');
+        setSimExpenseAmount('');
+        setSimExpenseVendor('');
+        setSimExpenseNotes('');
+        setSimExpenseReceiptIdx(null);
 
-    setSimNotifyMsg({
-      text: msg,
-      type: 'success'
-    });
-
-    setSimExpenseTitle('');
-    setSimExpenseAmount('');
-    setSimExpenseVendor('');
-    setSimExpenseNotes('');
-    setSimExpenseReceiptIdx(null);
-
-    setTimeout(() => {
-      setSimNotifyMsg(null);
-    }, 4000);
+        setTimeout(() => {
+          setSimNotifyMsg(null);
+        }, 4000);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit mobile expense');
+      }
+    } catch (err) {
+      console.error("Error submitting mobile expense:", err);
+    }
   };
 
   const pmExpensesList = useMemo(() => {
@@ -1171,45 +1243,7 @@ export function ProjectLedgerPage({
           </p>
         </div>
 
-        {/* Tab Selection & Reset */}
-        <div className="flex items-center flex-wrap gap-3">
 
-          <button
-            type="button"
-            onClick={handleResetData}
-            title={t('resetAlert')}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E5E6] bg-white text-[#62666D] hover:bg-[#F3F4F6] hover:text-[#08090A] dark:border-white/10 dark:bg-white/[0.02] dark:text-neutral-400 dark:hover:bg-white/[0.05] transition-all shadow-xs cursor-pointer"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-
-          <div className="inline-flex rounded-xl bg-[#F3F4F6] p-1 dark:bg-white/[0.06] shadow-sm">
-            <button
-              type="button"
-              onClick={() => setActiveTab('desktop')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
-                activeTab === 'desktop'
-                  ? 'bg-white text-[#08090A] shadow-sm dark:bg-neutral-900 dark:text-white'
-                  : 'text-[#62666D] hover:text-[#08090A] dark:text-neutral-400 dark:hover:text-white'
-              }`}
-            >
-              <Laptop className="h-3.5 w-3.5" />
-              <span>{lang === 'bn' ? 'ওনার ড্যাশবোর্ড' : 'Owner Dashboard'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('mobile')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
-                activeTab === 'mobile'
-                  ? 'bg-white text-[#08090A] shadow-sm dark:bg-neutral-900 dark:text-white'
-                  : 'text-[#62666D] hover:text-[#08090A] dark:text-neutral-400 dark:hover:text-white'
-              }`}
-            >
-              <Smartphone className="h-3.5 w-3.5" />
-              <span>{lang === 'bn' ? 'PM মোবাইল সিমুলেটর' : 'PM Mobile Simulator'}</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* --- DESKTOP VIEW --- */}

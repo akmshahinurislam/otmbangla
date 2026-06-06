@@ -122,6 +122,7 @@ app.post('/api/auth/signup', authLimiter, validateRequest(signupSchema), async (
         name,
         phone,
         email,
+        role: 'Contractor',
       }
     });
   } catch (error) {
@@ -202,6 +203,7 @@ app.post('/api/auth/login', authLimiter, validateRequest(loginSchema), async (re
         name: user.name,
         phone: user.phone,
         email: user.email,
+        role: user.role || 'Contractor',
       }
     });
   } catch (error) {
@@ -251,7 +253,8 @@ app.get('/api/auth/me', async (req, res) => {
         id: user._id.toString(),
         name: user.name,
         phone: user.phone,
-        email: user.email
+        email: user.email,
+        role: user.role || 'Contractor'
       }
     });
   } catch (error) {
@@ -530,6 +533,435 @@ app.put('/api/auth/users/:id', async (req, res) => {
     res.status(200).json({ message: 'User updated successfully!' });
   } catch (error) {
     logger.error('🔥 Update user error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// Invite PM Endpoint (by Admin/Owner)
+app.post('/api/auth/invite', async (req, res) => {
+  const { name, email, role, phone, projectCodes, ownerEmail } = req.body;
+
+  if (!email || !name || !role || !phone) {
+    return res.status(400).json({ error: 'Missing required fields: email, name, role, phone are all required.' });
+  }
+
+  try {
+    const users = getCollection('users');
+    
+    // Check if user already exists
+    const existingUser = await users.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ error: 'A team member with this email address already exists.' });
+    }
+
+    // Generate secure random invite token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 24 * 3600000); // 24 hours
+
+    // Insert user as Pending
+    await users.insertOne({
+      name,
+      email: email.toLowerCase(),
+      phone,
+      role,
+      status: 'Pending',
+      inviteToken: token,
+      inviteExpires: expires,
+      createdAt: new Date(),
+      failedLoginAttempts: 0,
+    });
+
+    // Link team member's email to the assigned projects in db
+    if (projectCodes && Array.isArray(projectCodes)) {
+      const projectsCol = getCollection('projects');
+      await projectsCol.updateMany(
+        { code: { $in: projectCodes } },
+        { $addToSet: { teamEmails: email.toLowerCase() } }
+      );
+    }
+
+    // Modern Design invitation Email
+    const appUrl = `http://localhost:5174/set-password?token=${token}`;
+    const htmlContent = `
+      <div style="font-family: 'Outfit', 'Inter', 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; border: 1px solid rgba(229, 229, 230, 0.5); border-radius: 24px; background-color: #ffffff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=120&q=80" alt="OTMBangla Construction Portal" style="height: 60px; width: 60px; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); margin-bottom: 12px;" />
+          <h2 style="color: #08090A; margin: 0; font-size: 24px; font-weight: 800; tracking: -0.5px;">OTMBangla Team Invitation</h2>
+          <p style="font-size: 13px; color: #8A8F98; font-weight: 500; margin-top: 4px; text-transform: uppercase; letter-spacing: 1.5px;">Security & Management System</p>
+        </div>
+        
+        <p style="font-size: 15px; color: #08090a; line-height: 1.6; margin-bottom: 16px;">Hello <strong>${name}</strong>,</p>
+        <p style="font-size: 15px; color: #62666d; line-height: 1.6; margin-bottom: 24px;">You have been invited by the Owner (${ownerEmail || 'admin@otmbangla.com'}) to join <strong>OTMBangla BDTender & Project Management Portal</strong> in the role of <span style="background-color: #F3F4F6; color: #5E6AD2; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${role}</span>.</p>
+        
+        ${projectCodes && projectCodes.length > 0 ? `
+          <div style="background-color: #F9FAFB; border: 1px solid #E5E5E6; border-radius: 16px; padding: 20px; margin-bottom: 28px;">
+            <p style="font-size: 12px; color: #8A8F98; font-weight: 800; text-transform: uppercase; margin: 0 0 12px 0; letter-spacing: 0.5px;">Assigned Projects</p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #08090a; line-height: 1.6; font-weight: 600;">
+              ${projectCodes.map((/** @type {any} */ code) => `<li style="margin-bottom: 6px;">${code}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        <p style="font-size: 14px; color: #62666d; line-height: 1.6; margin-bottom: 28px;">To activate your manager account, configure your private password, and access your project dashboard, click the button below:</p>
+        
+        <div style="text-align: center; margin: 36px 0;">
+          <a href="${appUrl}" target="_blank" style="background-color: #5E6AD2; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-size: 14px; font-weight: 800; display: inline-block; box-shadow: 0 8px 16px rgba(94, 106, 210, 0.2); transition: all 0.2s ease; border: 1px solid #5E6AD2;">
+            Set Password & Join Team
+          </a>
+        </div>
+        
+        <div style="background-color: #FFFBEB; border: 1px solid #FEF3C7; border-radius: 12px; padding: 12px 16px; margin-bottom: 32px; text-align: left;">
+          <p style="font-size: 12px; color: #B45309; line-height: 1.5; font-weight: 600; margin: 0;">⚠️ Security Notice: This invitation is secure, encrypted, and will expire automatically in <strong>24 hours</strong>. If you did not expect this request, please contact the administrator.</p>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid #E5E5E6; margin: 28px 0;" />
+        <p style="font-size: 11px; color: #8A8F98; line-height: 1.5; text-align: center; margin: 0;">
+          Sent automatically by OTMBangla Portal. If you require technical assistance, please contact <a href="mailto:support@banglasolution.com" style="color: #5E6AD2; text-decoration: none; font-weight: 600;">support@banglasolution.com</a>.
+        </p>
+      </div>
+    `;
+
+    // Send invitation email
+    const emailSent = await sendMail({
+      to: email,
+      subject: `Invite: Join OTMBangla as ${role}`,
+      html: htmlContent
+    });
+
+    if (emailSent) {
+      logger.info(`✉️ Invitation email sent successfully to ${email}`);
+      res.status(200).json({ message: 'Invitation email sent successfully!' });
+    } else {
+      logger.error(`🔥 Failed to send invitation email to ${email}, fallback invite link: ${appUrl}`);
+      // Return 200 with fallback link in description in case SMTP fails during development/testing
+      res.status(200).json({ 
+        message: 'Team member created, but email dispatch failed. Set password manually using this link.',
+        fallbackUrl: appUrl 
+      });
+    }
+
+  } catch (error) {
+    logger.error('🔥 Invite member endpoint error:', error);
+    res.status(500).json({ error: 'Server database query error' });
+  }
+});
+
+// Accept Invite / Set Password Endpoint
+app.post('/api/auth/accept-invite', async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: 'Token and password are required.' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+  }
+
+  try {
+    const users = getCollection('users');
+
+    // Find the user by token
+    const user = await users.findOne({
+      inviteToken: token,
+      inviteExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invitation link is invalid or has expired.' });
+    }
+
+    // Hash Password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user: set password, set status to Active, clear invite fields
+    await users.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          password: hashedPassword,
+          status: 'Active'
+        },
+        $unset: {
+          inviteToken: '',
+          inviteExpires: ''
+        }
+      }
+    );
+
+    // Create session & JWT token
+    const jti = await createSession(user._id.toString(), req);
+    const jwtToken = jwt.sign(
+      { id: user._id.toString(), name: user.name, email: user.email, phone: user.phone, jti },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    logger.info(`✨ User ${user.email} accepted invitation and set password successfully.`);
+
+    res.status(200).json({
+      message: 'Password set successfully!',
+      token: jwtToken,
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+      }
+    });
+
+  } catch (error) {
+    logger.error('🔥 Accept invite error:', error);
+    res.status(500).json({ error: 'Server error setting password.' });
+  }
+});
+
+// --- LEDGER SYNC ENDPOINTS ---
+
+// GET Projects
+app.get('/api/ledger/projects', async (req, res) => {
+  try {
+    const projectsCol = getCollection('projects');
+    const email = /** @type {string} */ (req.query.email);
+    const role = /** @type {string} */ (req.query.role);
+
+    let filter = {};
+    if (email && (role === 'Project Manager' || role === 'Site Engineer' || role === 'Supervisor' || role === 'Accountant')) {
+      filter = { teamEmails: email.toLowerCase() };
+    }
+
+    const projects = await projectsCol.find(filter).toArray();
+    res.status(200).json(projects);
+  } catch (error) {
+    logger.error('🔥 Fetch projects error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// POST Projects (Add new project)
+app.post('/api/ledger/projects', async (req, res) => {
+  const { name, code, location, budget, ownerEmail, teamEmails } = req.body;
+  if (!name || !code || !budget) {
+    return res.status(400).json({ error: 'Name, code and budget are required.' });
+  }
+
+  try {
+    const projectsCol = getCollection('projects');
+    const existing = await projectsCol.findOne({ code: code.toUpperCase() });
+    if (existing) {
+      return res.status(400).json({ error: 'Project with this code already exists.' });
+    }
+
+    const newProject = {
+      id: 'p-' + Date.now(),
+      name,
+      code: code.toUpperCase(),
+      location: location || '',
+      budget: parseFloat(budget),
+      ownerEmail: ownerEmail || 'admin@otmbangla.com',
+      teamEmails: teamEmails || []
+    };
+
+    await projectsCol.insertOne(newProject);
+    res.status(201).json(newProject);
+  } catch (error) {
+    logger.error('🔥 Add project error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// GET Team Members
+app.get('/api/ledger/team', async (req, res) => {
+  try {
+    const usersCol = getCollection('users');
+    const team = await usersCol.find({
+      role: { $in: ['Project Manager', 'Site Engineer', 'Supervisor', 'Accountant'] }
+    }).toArray();
+
+    const formattedTeam = team.map(u => ({
+      email: u.email,
+      name: u.name,
+      role: u.role,
+      phone: u.phone
+    }));
+
+    res.status(200).json(formattedTeam);
+  } catch (error) {
+    logger.error('🔥 Fetch team error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// GET Allocations
+app.get('/api/ledger/allocations', async (req, res) => {
+  try {
+    const allocationsCol = getCollection('allocations');
+    const email = /** @type {string} */ (req.query.email);
+    const role = /** @type {string} */ (req.query.role);
+
+    let filter = {};
+    if (email && (role === 'Project Manager' || role === 'Site Engineer' || role === 'Supervisor' || role === 'Accountant')) {
+      filter = { teamEmail: email.toLowerCase() };
+    }
+
+    const allocations = await allocationsCol.find(filter).toArray();
+    res.status(200).json(allocations);
+  } catch (error) {
+    logger.error('🔥 Fetch allocations error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// POST Allocations
+app.post('/api/ledger/allocations', async (req, res) => {
+  const { projectCode, teamEmail, amount, date, method, notes } = req.body;
+  if (!projectCode || !teamEmail || !amount) {
+    return res.status(400).json({ error: 'projectCode, teamEmail and amount are required.' });
+  }
+
+  try {
+    const allocationsCol = getCollection('allocations');
+    const newAlloc = {
+      id: 'a-' + Date.now(),
+      projectCode,
+      teamEmail: teamEmail.toLowerCase(),
+      amount: parseFloat(amount),
+      date: date || new Date().toISOString().split('T')[0],
+      method,
+      notes
+    };
+
+    await allocationsCol.insertOne(newAlloc);
+    res.status(201).json(newAlloc);
+  } catch (error) {
+    logger.error('🔥 Add allocation error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// GET Expenses
+app.get('/api/ledger/expenses', async (req, res) => {
+  try {
+    const expensesCol = getCollection('expenses');
+    const email = /** @type {string} */ (req.query.email);
+    const role = /** @type {string} */ (req.query.role);
+
+    let filter = {};
+    if (email && (role === 'Project Manager' || role === 'Site Engineer' || role === 'Supervisor' || role === 'Accountant')) {
+      const projectsCol = getCollection('projects');
+      const assignedProjects = await projectsCol.find({ teamEmails: email.toLowerCase() }).toArray();
+      const codes = assignedProjects.map(p => p.code);
+      filter = {
+        $or: [
+          { teamEmail: email.toLowerCase() },
+          { projectCode: { $in: codes } }
+        ]
+      };
+    }
+
+    const expenses = await expensesCol.find(filter).toArray();
+    res.status(200).json(expenses);
+  } catch (error) {
+    logger.error('🔥 Fetch expenses error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// POST Expenses (Add new expense)
+app.post('/api/ledger/expenses', async (req, res) => {
+  const { id, projectCode, teamEmail, title, amount, category, date, type, vendor, notes, receiptMockIdx } = req.body;
+  if (!projectCode || !title || !amount || !type) {
+    return res.status(400).json({ error: 'projectCode, title, amount and type are required.' });
+  }
+
+  try {
+    const expensesCol = getCollection('expenses');
+    const newExpense = {
+      id: id || 'exp-' + Date.now(),
+      projectCode,
+      teamEmail: teamEmail.toLowerCase(),
+      title,
+      amount: parseFloat(amount),
+      category: category || 'Others',
+      date: date || new Date().toISOString().split('T')[0],
+      type,
+      vendor: type === 'baki' ? vendor : undefined,
+      notes,
+      receiptMockIdx,
+      isSettled: false,
+      payments: []
+    };
+
+    await expensesCol.insertOne(newExpense);
+    res.status(201).json(newExpense);
+  } catch (error) {
+    logger.error('🔥 Add expense error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// POST Settle (Scenario A/B direct payment or PM payment settlement)
+app.post('/api/ledger/settle', async (req, res) => {
+  const { expenseId, amount, method, notes } = req.body;
+  if (!expenseId || !amount || !method) {
+    return res.status(400).json({ error: 'expenseId, amount and method are required.' });
+  }
+
+  try {
+    const expensesCol = getCollection('expenses');
+    const expense = await expensesCol.findOne({ id: expenseId });
+    if (!expense) {
+      return res.status(404).json({ error: 'Expense not found.' });
+    }
+
+    const payment = {
+      id: 'pay-' + Date.now(),
+      amount: parseFloat(amount),
+      date: new Date().toISOString().split('T')[0],
+      method,
+      notes
+    };
+
+    const updatedPayments = [...(expense.payments || []), payment];
+    const totalPaid = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+    const isSettled = totalPaid >= expense.amount;
+
+    await expensesCol.updateOne(
+      { id: expenseId },
+      { 
+        $set: { 
+          payments: updatedPayments,
+          isSettled: isSettled
+        } 
+      }
+    );
+
+    const updatedExpense = await expensesCol.findOne({ id: expenseId });
+    res.status(200).json(updatedExpense);
+  } catch (error) {
+    logger.error('🔥 Settle dues error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// POST Void Expense
+app.post('/api/ledger/void-expense', async (req, res) => {
+  const { expenseId } = req.body;
+  if (!expenseId) {
+    return res.status(400).json({ error: 'expenseId is required.' });
+  }
+
+  try {
+    const expensesCol = getCollection('expenses');
+    const result = await expensesCol.deleteOne({ id: expenseId });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Expense not found.' });
+    }
+
+    res.status(200).json({ message: 'Expense voided successfully!' });
+  } catch (error) {
+    logger.error('🔥 Void expense error:', error);
     res.status(500).json({ error: 'Server database error' });
   }
 });

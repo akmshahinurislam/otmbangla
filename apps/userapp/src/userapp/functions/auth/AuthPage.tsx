@@ -32,6 +32,10 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
     confirmPassword: '',
   });
 
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
   const [showSettings, setShowSettings] = useState(false);
   const [hostIpInput, setHostIpInput] = useState(() => getBackendHost());
 
@@ -48,6 +52,16 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
     token: string;
     user: { name: string; phone: string; email: string };
   } | null>(null);
+
+  // Detect invitation token on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tok = params.get('token');
+    if (tok) {
+      console.log(`[AuthPage] Invitation token detected: ${tok}`);
+      setInviteToken(tok);
+    }
+  }, []);
 
   // Progressive fake loading logic
   useEffect(() => {
@@ -109,6 +123,64 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleSetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+
+    if (!newPassword || !confirmNewPassword) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setLoading(true);
+    const apiBaseUrl = `${getApiUrl(3001)}/api/auth/accept-invite`;
+    console.log(`[AuthPage] Submitting password configuration to: ${apiBaseUrl}`);
+
+    try {
+      const response = await fetch(apiBaseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: inviteToken,
+          password: newPassword,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to configure password.');
+      }
+
+      setSuccessMsg('Account configured successfully! Setting up your workspace...');
+      
+      // Clean query string from browser URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.toString());
+
+      setTimeout(() => {
+        setPendingAuthData({ token: data.token, user: data.user });
+        setLoadingType('signup');
+        setFakeLoading(true);
+      }, 1000);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,8 +264,6 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
       }
     } catch (err: any) {
       console.error('Auth request failed! Detailed error object:', err);
-      console.error(`Attempted API Base URL: ${apiBaseUrl}`);
-      console.error(`Current Navigator Online Status: ${navigator.onLine ? 'ONLINE' : 'OFFLINE'}`);
       setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -311,45 +381,47 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
         <div className="flex flex-col items-center">
           <img src="/21feb.png" className="h-16 w-16 object-contain rounded-2xl shadow-sm mb-2" alt="OTM Bangla Logo" />
           <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight text-[#08090A] dark:text-white font-sans">
-            Welcome to OTM Bangla
+            {inviteToken ? 'Set Your Password' : 'Welcome to OTM Bangla'}
           </h2>
           <p className="mt-3 text-center text-base text-[#62666D] dark:text-neutral-400">
-            {isLogin ? 'Access your workspace and functions' : 'Create your secure developer workspace'}
+            {inviteToken ? 'Configure your password to join the project team' : isLogin ? 'Access your workspace and functions' : 'Create your secure developer workspace'}
           </p>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-[#E5E5E6] bg-white p-8 shadow-xl dark:border-white/10 dark:bg-white/[0.02] dark:backdrop-blur-md">
           {/* Tab buttons */}
-          <div className="mb-8 flex rounded-xl bg-neutral-100 p-1.5 dark:bg-white/[0.05]">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(true);
-                setError('');
-                setSuccessMsg('');
-              }}
-              className={`w-1/2 rounded-lg py-3 text-sm font-bold transition-all ${isLogin
-                ? 'bg-white text-[#08090A] shadow-sm dark:bg-neutral-800 dark:text-white'
-                : 'text-[#62666D] hover:text-[#08090A] dark:text-neutral-400 dark:hover:text-white'
-                }`}
-            >
-              Log In
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(false);
-                setError('');
-                setSuccessMsg('');
-              }}
-              className={`w-1/2 rounded-lg py-3 text-sm font-bold transition-all ${!isLogin
-                ? 'bg-white text-[#08090A] shadow-sm dark:bg-neutral-800 dark:text-white'
-                : 'text-[#62666D] hover:text-[#08090A] dark:text-neutral-400 dark:hover:text-white'
-                }`}
-            >
-              Sign Up
-            </button>
-          </div>
+          {!inviteToken && (
+            <div className="mb-8 flex rounded-xl bg-neutral-100 p-1.5 dark:bg-white/[0.05]">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(true);
+                  setError('');
+                  setSuccessMsg('');
+                }}
+                className={`w-1/2 rounded-lg py-3 text-sm font-bold transition-all ${isLogin
+                  ? 'bg-white text-[#08090A] shadow-sm dark:bg-neutral-800 dark:text-white'
+                  : 'text-[#62666D] hover:text-[#08090A] dark:text-neutral-400 dark:hover:text-white'
+                  }`}
+              >
+                Log In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(false);
+                  setError('');
+                  setSuccessMsg('');
+                }}
+                className={`w-1/2 rounded-lg py-3 text-sm font-bold transition-all ${!isLogin
+                  ? 'bg-white text-[#08090A] shadow-sm dark:bg-neutral-800 dark:text-white'
+                  : 'text-[#62666D] hover:text-[#08090A] dark:text-neutral-400 dark:hover:text-white'
+                  }`}
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="mb-5 rounded-xl border border-red-200/50 bg-red-50/50 p-4 text-sm font-semibold text-red-600 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400 animate-fadeIn">
@@ -373,128 +445,182 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Full Name (Signup Only) */}
-            {!isLogin && (
+          {inviteToken ? (
+            <form onSubmit={handleSetPasswordSubmit} className="space-y-6">
               <div className="relative">
                 <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  placeholder=" "
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
-                />
-                <label
-                  htmlFor="name"
-                  className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] dark:peer-focus:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
-                >
-                  Full Name
-                </label>
-              </div>
-            )}
-
-            {/* Phone / Email */}
-            <div className="relative">
-              <input
-                id="phone"
-                name="phone"
-                type="text"
-                required
-                placeholder=" "
-                value={formData.phone}
-                onChange={handleChange}
-                className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
-              />
-              <label
-                htmlFor="phone"
-                className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] dark:peer-focus:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
-              >
-                {isLogin ? 'Email or phone' : 'Phone number'}
-              </label>
-            </div>
-
-            {/* Email Address (Signup Only) */}
-            {!isLogin && (
-              <div className="relative">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder=" "
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
-                />
-                <label
-                  htmlFor="email"
-                  className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] dark:peer-focus:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
-                >
-                  Email address
-                </label>
-              </div>
-            )}
-
-            {/* Password */}
-            <div className="relative">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                placeholder=" "
-                value={formData.password}
-                onChange={handleChange}
-                className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
-              />
-              <label
-                htmlFor="password"
-                className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] dark:peer-focus:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
-              >
-                Password
-              </label>
-            </div>
-
-            {/* Confirm Password (Signup Only) */}
-            {!isLogin && (
-              <div className="relative">
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
+                  id="newPassword"
+                  name="newPassword"
                   type="password"
                   required
                   placeholder=" "
-                  value={formData.confirmPassword}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
+                />
+                <label
+                  htmlFor="newPassword"
+                  className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
+                >
+                  New Password
+                </label>
+              </div>
+
+              <div className="relative">
+                <input
+                  id="confirmNewPassword"
+                  name="confirmNewPassword"
+                  type="password"
+                  required
+                  placeholder=" "
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
+                />
+                <label
+                  htmlFor="confirmNewPassword"
+                  className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
+                >
+                  Confirm Password
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-[#5E6AD2] py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-[#4d59c2] focus:outline-none focus:ring-2 focus:ring-[#5E6AD2]/50 disabled:opacity-50 dark:bg-[#717CFF] dark:hover:bg-[#5b66e6]"
+              >
+                {loading ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border border-white border-t-transparent" />
+                ) : (
+                  'Configure Password & Log In'
+                )}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              {/* Full Name (Signup Only) */}
+              {!isLogin && (
+                <div className="relative">
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    placeholder=" "
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
+                  />
+                  <label
+                    htmlFor="name"
+                    className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
+                  >
+                    Full Name
+                  </label>
+                </div>
+              )}
+
+              {/* Phone / Email */}
+              <div className="relative">
+                <input
+                  id="phone"
+                  name="phone"
+                  type="text"
+                  required
+                  placeholder=" "
+                  value={formData.phone}
                   onChange={handleChange}
                   className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
                 />
                 <label
-                  htmlFor="confirmPassword"
-                  className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] dark:peer-focus:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
+                  htmlFor="phone"
+                  className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
                 >
-                  Confirm password
+                  Email or phone
                 </label>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-[#5E6AD2] py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-[#4d59c2] focus:outline-none focus:ring-2 focus:ring-[#5E6AD2]/50 disabled:opacity-50 dark:bg-[#717CFF] dark:hover:bg-[#5b66e6]"
-            >
-              {loading ? (
-                <div className="h-5 w-5 animate-spin rounded-full border border-white border-t-transparent" />
-              ) : isLogin ? (
-                'Access Portal'
-              ) : (
-                'Register & Login'
+              {/* Email Address (Signup Only) */}
+              {!isLogin && (
+                <div className="relative">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder=" "
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
+                  />
+                  <label
+                    htmlFor="email"
+                    className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
+                  >
+                    Email address
+                  </label>
+                </div>
               )}
-            </button>
-          </form>
+
+              {/* Password */}
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder=" "
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
+                />
+                <label
+                  htmlFor="password"
+                  className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
+                >
+                  Password
+                </label>
+              </div>
+
+              {/* Confirm Password (Signup Only) */}
+              {!isLogin && (
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    placeholder=" "
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="peer block w-full rounded-xl border border-neutral-300 bg-white dark:bg-[#18181b] px-4 py-4 text-base text-[#08090A] outline-none focus:border-blue-600 focus:ring-0 dark:border-white/10 dark:text-white dark:focus:border-blue-500 transition-all font-semibold"
+                  />
+                  <label
+                    htmlFor="confirmPassword"
+                    className="absolute text-sm text-neutral-400 dark:text-neutral-500 duration-150 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#18181b] px-1.5 left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-blue-600 dark:peer-focus:text-blue-500 transition-all pointer-events-none font-semibold"
+                  >
+                    Confirm password
+                  </label>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-[#5E6AD2] py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-[#4d59c2] focus:outline-none focus:ring-2 focus:ring-[#5E6AD2]/50 disabled:opacity-50 dark:bg-[#717CFF] dark:hover:bg-[#5b66e6]"
+              >
+                {loading ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border border-white border-t-transparent" />
+                ) : isLogin ? (
+                  'Access Portal'
+                ) : (
+                  'Register & Login'
+                )}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>
