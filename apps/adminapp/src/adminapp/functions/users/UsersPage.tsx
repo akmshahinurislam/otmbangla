@@ -15,7 +15,8 @@ interface UserItem {
 }
 
 const isProd = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.PROD : process.env.NODE_ENV === 'production';
-const AUTH_SERVICE_URL = isProd ? 'https://otmbangla-auth-service.onrender.com' : 'http://localhost:3001';
+const env = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : (process.env || {});
+const AUTH_SERVICE_URL = isProd ? (env.VITE_AUTH_SERVICE_URL || 'https://otmbangla-auth-service.onrender.com') : 'http://localhost:3001';
 
 export function UsersPage() {
   const [usersList, setUsersList] = useState<UserItem[]>([]);

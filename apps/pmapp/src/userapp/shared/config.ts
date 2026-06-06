@@ -17,18 +17,19 @@ export const getApiUrl = (port: number): string => {
   const isProd = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.PROD : process.env.NODE_ENV === 'production';
   
   if (isProd) {
+    const env = (import.meta as any).env || {};
     switch (port) {
       case 3001:
-        return 'https://otmbangla-auth-service.onrender.com';
+        return env.VITE_AUTH_SERVICE_URL || 'https://otmbangla-auth-service.onrender.com';
       case 3002:
-        return 'https://otmbangla-api-gateway.onrender.com';
+        return env.VITE_API_GATEWAY_URL || 'https://otmbangla-api-gateway.onrender.com';
       case 3003:
-        return 'https://otmbangla-webscrap-service.onrender.com';
+        return env.VITE_WEBSCRAP_SERVICE_URL || 'https://otmbangla-webscrap-service.onrender.com';
       case 3004:
-        return 'https://otmbangla-ai-service.onrender.com';
+        return env.VITE_AI_SERVICE_URL || 'https://otmbangla-ai-service.onrender.com';
       case 8000:
       case 8001:
-        return 'https://otmbangla-analysis-service.onrender.com';
+        return env.VITE_ANALYSIS_SERVICE_URL || 'https://otmbangla-analysis-service.onrender.com';
     }
   }
 
