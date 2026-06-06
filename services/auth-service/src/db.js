@@ -259,8 +259,42 @@ export async function initializeDatabase() {
     console.log('🔨 Ensuring unique indexes exist on "users" collection...');
     const users = db.collection('users');
     
-    await users.createIndex({ phone: 1 }, { unique: true });
-    await users.createIndex({ email: 1 }, { unique: true });
+    // Migrate existing users to have 'app' field if missing
+    try {
+      await users.updateMany(
+        { app: { $exists: false }, role: { $in: ['Owner', 'Contractor'] } },
+        { $set: { app: 'userapp' } }
+      );
+      await users.updateMany(
+        { app: { $exists: false }, role: { $in: ['Project Manager', 'Site Engineer', 'Supervisor', 'Accountant'] } },
+        { $set: { app: 'pmapp' } }
+      );
+      await users.updateMany(
+        { app: { $exists: false } },
+        { $set: { app: 'userapp' } }
+      );
+      console.log('✅ Existing users migrated to scoped app contexts.');
+    } catch (migErr) {
+      console.warn('⚠️ User migration warning:', migErr);
+    }
+
+    // Drop old single-field unique indexes to allow duplicates across apps
+    try {
+      await users.dropIndex('phone_1');
+      console.log('Dropped index: phone_1');
+    } catch (e) {
+      // index might not exist
+    }
+    try {
+      await users.dropIndex('email_1');
+      console.log('Dropped index: email_1');
+    } catch (e) {
+      // index might not exist
+    }
+    
+    // Create new compound unique indexes scoped by app
+    await users.createIndex({ phone: 1, app: 1 }, { unique: true });
+    await users.createIndex({ email: 1, app: 1 }, { unique: true });
 
     // Seed database items
     await seedDatabase(db);

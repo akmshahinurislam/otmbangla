@@ -200,6 +200,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
           body: JSON.stringify({
             phone: formData.phone,
             password: formData.password,
+            app: 'pmapp',
           }),
         });
 

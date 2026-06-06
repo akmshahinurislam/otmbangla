@@ -67,22 +67,24 @@ app.get('/health', (req, res) => {
 // Signup Endpoint
 app.post('/api/auth/signup', authLimiter, validateRequest(signupSchema), async (req, res) => {
   const { name, phone, email, password } = req.body;
+  const appType = req.body.app || 'userapp';
 
   try {
     const users = getCollection('users');
     
-    // Check if phone or email already exists
+    // Check if phone or email already exists in the same app context
     const existingUser = await users.findOne({
+      app: appType,
       $or: [{ phone }, { email }]
     });
 
     if (existingUser) {
       if (existingUser.phone === phone) {
-        logger.warn(`👤 Signup rejected: Phone number ${phone} is already registered.`);
+        logger.warn(`👤 Signup rejected: Phone number ${phone} is already registered in ${appType}.`);
         return res.status(400).json({ error: 'Phone number is already registered' });
       }
       if (existingUser.email === email) {
-        logger.warn(`👤 Signup rejected: Email address ${email} is already registered.`);
+        logger.warn(`👤 Signup rejected: Email address ${email} is already registered in ${appType}.`);
         return res.status(400).json({ error: 'Email address is already registered' });
       }
     }
@@ -96,6 +98,8 @@ app.post('/api/auth/signup', authLimiter, validateRequest(signupSchema), async (
       phone,
       email,
       password: hashedPassword,
+      role: 'Owner',
+      app: appType,
       createdAt: new Date(),
       failedLoginAttempts: 0,
     });
@@ -122,7 +126,7 @@ app.post('/api/auth/signup', authLimiter, validateRequest(signupSchema), async (
         name,
         phone,
         email,
-        role: 'Contractor',
+        role: 'Owner',
       }
     });
   } catch (error) {
@@ -134,6 +138,7 @@ app.post('/api/auth/signup', authLimiter, validateRequest(signupSchema), async (
 // Login Endpoint
 app.post('/api/auth/login', authLimiter, validateRequest(loginSchema), async (req, res) => {
   const { phone, password } = req.body; // 'phone' handles both phone or email inputs
+  const appType = req.body.app || 'userapp';
 
   try {
     // 1. Check if user is locked out due to brute force protection
@@ -150,8 +155,9 @@ app.post('/api/auth/login', authLimiter, validateRequest(loginSchema), async (re
     // Normalize inputs
     const credential = phone.trim();
     
-    // Find user in database by either phone or email
+    // Find user in database by either phone or email within the specific app context
     const user = await users.findOne({
+      app: appType,
       $or: [
         { phone: credential },
         { email: credential.toLowerCase() }
@@ -162,7 +168,7 @@ app.post('/api/auth/login', authLimiter, validateRequest(loginSchema), async (re
     if (!user) {
       // Execute failed attempt trigger to apply Timing Tarpitting (adds artificial lag)
       await handleFailedLoginAttempt(phone);
-      logger.warn(`⚠️ Authentication failure: credentials not found for input "${phone}"`);
+      logger.warn(`⚠️ Authentication failure: credentials not found for input "${phone}" in app context "${appType}"`);
       
       // Generic error response to prevent user enumeration
       return res.status(400).json({ error: 'Invalid credentials. Please verify your phone/email and password.' });
@@ -172,7 +178,7 @@ app.post('/api/auth/login', authLimiter, validateRequest(loginSchema), async (re
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       await handleFailedLoginAttempt(phone);
-      logger.warn(`⚠️ Authentication failure: incorrect password for user ${user.email || user.phone}`);
+      logger.warn(`⚠️ Authentication failure: incorrect password for user ${user.email || user.phone} in app context "${appType}"`);
       
       // Generic error response
       return res.status(400).json({ error: 'Invalid credentials. Please verify your phone/email and password.' });
@@ -193,7 +199,7 @@ app.post('/api/auth/login', authLimiter, validateRequest(loginSchema), async (re
       { expiresIn: '7d' }
     );
 
-    logger.info(`🔓 User logged in successfully: ${user.email} (${userId}) from IP ${req.ip}`);
+    logger.info(`🔓 User logged in successfully: ${user.email} (${userId}) from IP ${req.ip} in app context "${appType}"`);
 
     res.status(200).json({
       message: 'Login successful!',
@@ -203,7 +209,7 @@ app.post('/api/auth/login', authLimiter, validateRequest(loginSchema), async (re
         name: user.name,
         phone: user.phone,
         email: user.email,
-        role: user.role || 'Contractor',
+        role: user.role || (appType === 'userapp' ? 'Owner' : 'Project Manager'),
       }
     });
   } catch (error) {
@@ -547,9 +553,11 @@ app.post('/api/auth/invite', async (req, res) => {
 
   try {
     const users = getCollection('users');
+    const appType = req.body.app || 'pmapp';
     
-    // Check if user already exists by email or phone
+    // Check if user already exists by email or phone in the same app context
     const existingUser = await users.findOne({
+      app: appType,
       $or: [
         { email: email.toLowerCase() },
         { phone }
@@ -577,6 +585,7 @@ app.post('/api/auth/invite', async (req, res) => {
       status: 'Pending',
       inviteToken: token,
       inviteExpires: expires,
+      app: appType,
       createdAt: new Date(),
       failedLoginAttempts: 0,
     });

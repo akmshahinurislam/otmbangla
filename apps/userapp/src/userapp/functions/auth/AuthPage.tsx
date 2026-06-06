@@ -206,6 +206,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
           body: JSON.stringify({
             phone: formData.phone,
             password: formData.password,
+            app: 'userapp',
           }),
         });
 
@@ -241,6 +242,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             email: formData.email,
             password: formData.password,
             confirmPassword: formData.confirmPassword,
+            app: 'userapp',
           }),
         });
 

@@ -954,7 +954,8 @@ export function ProjectLedgerPage({
           role: newMemberRole,
           phone: newMemberPhone,
           projectCodes: newMemberProjectCodes,
-          ownerEmail: user?.email || 'admin@otmbangla.com'
+          ownerEmail: user?.email || 'admin@otmbangla.com',
+          app: 'pmapp'
         })
       });
 
