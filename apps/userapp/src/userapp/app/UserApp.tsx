@@ -21,6 +21,16 @@ export function UserApp() {
     return savedTheme === 'dark' ? 'dark' : 'light';
   });
 
+  const [lang, setLang] = useState<'bn' | 'en'>(() => {
+    const savedLang = window.localStorage.getItem('userapp-lang');
+    return (savedLang === 'en' || savedLang === 'bn') ? savedLang : 'bn';
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem('userapp-lang', lang);
+  }, [lang]);
+
+
   const [token, setToken] = useState<string | null>(() => {
     const t = window.localStorage.getItem('userapp-token');
     console.log(`[UserApp] Initial token loaded from localStorage: ${t ? 'EXISTS' : 'NONE'}`);
@@ -104,9 +114,10 @@ export function UserApp() {
         themeMode={themeMode}
         onLogout={handleLogout}
         user={user}
+        lang={lang}
+        onLangChange={setLang}
       />
       <DevConsole />
     </>
   );
 }
-

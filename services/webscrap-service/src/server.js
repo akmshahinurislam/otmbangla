@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import app from './app.js';
 import { initializeDatabase, closeDatabase } from './db.js';
-import { seedBaseTenders, runScraper } from './scraper.js';
+import { seedBaseTenders, runScraper, runCleanup, runEContractsScraper } from './scraper.js';
 import logger from './utils/logger.js';
 
 const PORT = process.env.PORT || 3003;
@@ -15,13 +15,31 @@ async function startServer() {
   // 2. Seed robust base tenders if they do not exist
   await seedBaseTenders();
 
-  // 3. Proactively run the initial scrape on startup to ensure fresh listings exist
+  // 3. Proactively clean up expired tenders on startup
+  runCleanup().catch(err => logger.error('🔥 Initial database cleanup on start failed:', err));
+
+  // 4. Proactively run the initial scrape on startup to ensure fresh listings exist
   runScraper().catch(err => logger.error('🔥 Initial scrape on start failed:', err));
 
-  // 4. Schedule standard daily cron job at midnight to fetch latest e-GP tenders
+  // 4.5. Proactively run the initial eContracts scrape on startup to ensure fresh data exists
+  runEContractsScraper({ limitPages: 2 }).catch(err => logger.error('🔥 Initial eContracts scrape on start failed:', err));
+
+  // 5. Schedule standard daily cron job at midnight to fetch latest e-GP tenders
   cron.schedule('0 0 * * *', () => {
     logger.info('⏰ Scheduled cron: Running web scraper...');
     runScraper().catch(err => logger.error('🔥 Scheduled scraping job failed:', err));
+  });
+
+  // 6. Schedule daily cron job at 1:00 AM to clean up expired tenders (deadline passed)
+  cron.schedule('0 1 * * *', () => {
+    logger.info('⏰ Scheduled cron: Running automatic database cleanup...');
+    runCleanup().catch(err => logger.error('🔥 Scheduled cleanup job failed:', err));
+  });
+
+  // 6.5. Schedule daily cron job at 2:00 AM to fetch latest eContracts
+  cron.schedule('0 2 * * *', () => {
+    logger.info('⏰ Scheduled cron: Running eContracts web scraper...');
+    runEContractsScraper({ limitPages: 5 }).catch(err => logger.error('🔥 Scheduled eContracts scraping job failed:', err));
   });
 
   // 5. Spin up the Express server

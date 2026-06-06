@@ -40,6 +40,13 @@ export async function initializeDatabase() {
     await appPackages.createIndex({ pkgId: 1 });
     await appPackages.createIndex({ financialYear: 1 });
 
+    logger.info('🔨 Ensuring indexes exist on "econtracts" collection...');
+    const econtracts = db.collection('econtracts');
+    await econtracts.createIndex({ pkgLotId: 1, tenderId: 1 }, { unique: true });
+    await econtracts.createIndex({ tenderId: 1 });
+    await econtracts.createIndex({ 'details.dateOfNotificationOfAward': -1 });
+    await econtracts.createIndex({ signingDate: -1 });
+
     logger.info('✅ MongoDB Database and indexes verified for collections!');
   } catch (error) {
     logger.error('❌ Failed to initialize MongoDB Database:', error);
@@ -75,6 +82,16 @@ export function getAppPackagesCollection() {
     throw new Error('Database not initialized. Call initializeDatabase first.');
   }
   return db.collection('app_packages');
+}
+
+/**
+ * Get the eContracts collection
+ */
+export function getEContractsCollection() {
+  if (!db) {
+    throw new Error('Database not initialized. Call initializeDatabase first.');
+  }
+  return db.collection('econtracts');
 }
 
 

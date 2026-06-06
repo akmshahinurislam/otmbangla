@@ -474,4 +474,64 @@ app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
   }
 });
 
+// GET list of all users for admin
+app.get('/api/auth/users', async (req, res) => {
+  try {
+    const users = getCollection('users');
+    const allUsers = await users.find({}).toArray();
+    // Return users without password field
+    const sanitizedUsers = allUsers.map(user => {
+      const { password, ...rest } = user;
+      return {
+        id: user._id.toString(),
+        ...rest,
+        status: user.status || 'Active',
+        role: user.role || 'Contractor',
+        loginCount: user.loginCount || 0,
+        lastActiveIp: user.lastActiveIp || 'N/A',
+        activities: user.activities || ['Registered user account.']
+      };
+    });
+    res.status(200).json({ users: sanitizedUsers });
+  } catch (error) {
+    logger.error('🔥 Fetch users error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
+// PUT update user status/role for admin
+app.put('/api/auth/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status, role, activities } = req.body;
+
+  try {
+    const users = getCollection('users');
+    let objectId;
+    try {
+      objectId = new ObjectId(id);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
+
+    const updateFields = {};
+    if (status) updateFields.status = status;
+    if (role) updateFields.role = role;
+    if (activities) updateFields.activities = activities;
+
+    const result = await users.updateOne(
+      { _id: objectId },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User updated successfully!' });
+  } catch (error) {
+    logger.error('🔥 Update user error:', error);
+    res.status(500).json({ error: 'Server database error' });
+  }
+});
+
 export default app;

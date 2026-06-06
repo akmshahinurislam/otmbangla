@@ -20,4 +20,3 @@ if %errorLevel% == 0 (
     powershell -Command "Start-Process cmd -ArgumentList '/c %~dpnx0' -Verb RunAs"
     exit /b
 )
-

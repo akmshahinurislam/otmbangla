@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { getTendersCollection, getSubscriptionsCollection, getAppPackagesCollection } from './db.js';
-import { runScraper, runAPPScraper } from './scraper.js';
+import { getTendersCollection, getSubscriptionsCollection, getAppPackagesCollection, getEContractsCollection } from './db.js';
+import { runScraper, runAPPScraper, runEContractsScraper } from './scraper.js';
 import logger from './utils/logger.js';
 
 
@@ -85,8 +85,24 @@ app.get('/api/tenders', async (req, res) => {
     }
 
     logger.info(`🔍 Querying tenders with filter: ${JSON.stringify(query)}`);
-    const tenders = await tendersCollection.find(query).sort({ publishedDate: -1 }).toArray();
     
+    let cursor = tendersCollection.find(query).sort({ publishedDate: -1 });
+    
+    if (req.query.limit) {
+      const limit = parseInt(String(req.query.limit), 10);
+      if (!isNaN(limit)) {
+        cursor = cursor.limit(limit);
+      }
+    }
+    
+    if (req.query.skip) {
+      const skip = parseInt(String(req.query.skip), 10);
+      if (!isNaN(skip)) {
+        cursor = cursor.skip(skip);
+      }
+    }
+
+    const tenders = await cursor.toArray();
     res.json(tenders);
   } catch (error) {
     logger.error('🔥 Error fetching tenders:', error);
@@ -223,6 +239,122 @@ app.post('/api/scrape/app', async (req, res) => {
   } catch (error) {
     logger.error('🔥 APP Scraping trigger error:', error);
     res.status(500).json({ error: 'APP Scraping failed' });
+  }
+});
+
+// 6. Retrieve saved eContracts (Notice of Award)
+app.get('/api/econtracts', async (req, res) => {
+  try {
+    const collection = getEContractsCollection();
+    /** @type {any} */
+    const query = {};
+
+    // A. Keyword search (Tender ID, Ref No, Title, Contractor Name)
+    if (req.query.search) {
+      const searchStr = String(req.query.search).trim();
+      if (searchStr) {
+        query.$or = [
+          { tenderId: { $regex: searchStr, $options: 'i' } },
+          { refNo: { $regex: searchStr, $options: 'i' } },
+          { title: { $regex: searchStr, $options: 'i' } },
+          { awardTo: { $regex: searchStr, $options: 'i' } }
+        ];
+      }
+    }
+
+    // B. District filtering
+    if (req.query.district) {
+      query.district = { $regex: String(req.query.district).trim(), $options: 'i' };
+    }
+
+    // C. Ministry filtering
+    if (req.query.ministry) {
+      query.ministry = { $regex: String(req.query.ministry).trim(), $options: 'i' };
+    }
+
+    // D. Pagination & Stats
+    const page = parseInt(String(req.query.page), 10) || 1;
+    const limit = parseInt(String(req.query.limit), 10) || 20;
+    const skip = (page - 1) * limit;
+
+    const total = await collection.countDocuments(query);
+    const data = await collection.find(query)
+      .sort({ signingDate: -1, scrapedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    // Calculate dynamic query-based stats
+    const statsResult = await collection.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalValue: { 
+            $sum: { 
+              $convert: { 
+                input: "$valueCrore", 
+                to: "double", 
+                onError: 0, 
+                onNull: 0 
+              } 
+            } 
+          },
+          contractors: { $addToSet: "$awardTo" }
+        }
+      }
+    ]).toArray();
+
+    const stats = statsResult[0] || { totalValue: 0, contractors: [] };
+
+    res.json({
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      stats: {
+        totalCount: total,
+        totalValueCrore: stats.totalValue.toFixed(3),
+        uniqueContractorsCount: stats.contractors.length
+      }
+    });
+  } catch (error) {
+    logger.error('🔥 Error fetching econtracts:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// 7. Retrieve single eContract by Tender ID
+app.get('/api/econtracts/:tenderId', async (req, res) => {
+  try {
+    const collection = getEContractsCollection();
+    const tenderId = req.params.tenderId;
+
+    const econtract = await collection.findOne({ tenderId });
+    if (!econtract) {
+      return res.status(404).json({ error: 'eContract not found' });
+    }
+    res.json(econtract);
+  } catch (error) {
+    logger.error('🔥 Error fetching econtract by Tender ID:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// 8. Manual eContracts Scrape Trigger endpoint
+app.post('/api/scrape/econtracts', async (req, res) => {
+  try {
+    const startPage = parseInt(req.body.startPage, 10) || 1;
+    const limitPages = parseInt(req.body.limitPages, 10) || 5;
+    const deepSync = req.body.deepSync === true || req.body.deepSync === 'true';
+
+    logger.info(`Manual eContracts scrape request received: startPage=${startPage}, limitPages=${limitPages}, deepSync=${deepSync}`);
+    const result = await runEContractsScraper({ startPage, limitPages, deepSync });
+    res.json({ success: true, message: 'eContracts scraping completed!', data: result });
+  } catch (error) {
+    logger.error('🔥 eContracts scraping trigger error:', error);
+    res.status(500).json({ error: 'eContracts scraping failed' });
   }
 });
 

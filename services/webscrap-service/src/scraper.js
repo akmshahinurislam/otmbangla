@@ -1,7 +1,8 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import fs from 'fs';
-import { getTendersCollection, getSubscriptionsCollection, getAppPackagesCollection } from './db.js';
+import path from 'path';
+import { getTendersCollection, getSubscriptionsCollection, getAppPackagesCollection, getEContractsCollection } from './db.js';
 import logger from './utils/logger.js';
 import { sendAlertEmail } from './utils/mail.js';
 
@@ -301,10 +302,10 @@ function matchDistrict(text) {
     return { district: 'Dhaka', districtId: 'DDist-01' };
   }
   if (t.includes('sylhet')) {
-    return { district: 'Sylhet', districtId: 'DDist-58' };
+    return { district: 'Sylhet', districtId: 'DDist-64' };
   }
   if (t.includes('sunamganj')) {
-    return { district: 'Sunamganj', districtId: 'DDist-57' };
+    return { district: 'Sunamganj', districtId: 'DDist-63' };
   }
   if (t.includes('coxsbazar') || t.includes('cox\'s bazar') || t.includes('coxs bazar') || t.includes('cox bazar')) {
     return { district: 'Cox\'s Bazar', districtId: 'DDist-67' };
@@ -384,122 +385,190 @@ export async function runScraper() {
   logger.info('🕷️ Starting web scraping routine for Bangladesh e-GP (eprocure.gov.bd)...');
   const collection = getTendersCollection();
 
+  // Get date strings for today and yesterday
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  const todayStr = today.toISOString().split('T')[0];
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  logger.info(`📅 Target scraping dates: Yesterday (${yesterdayStr}) and Today (${todayStr})`);
+
   try {
     const url = 'https://www.eprocure.gov.bd/TenderDetailsServlet';
     
-    const postData = new URLSearchParams({
-      funName: 'AllTenders',
-      keyword: '',
-      pageNo: '1',
-      size: '25',
-      homeWSearch: 'homeWSearch',
-      approve: 'false',
-      h: 't'
-    });
-
-    const response = await axios.post(url, postData.toString(), {
-      timeout: 15000,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Referer': 'https://www.eprocure.gov.bd/resources/common/StdTenderSearch.jsp?h=t',
-        'Origin': 'https://www.eprocure.gov.bd'
-      }
-    });
-
-    const html = response.data;
-    if (!html || html.trim().length === 0) {
-      throw new Error('Received empty response from e-GP servlet');
-    }
-
-    const completeHtml = `<table>${html}</table>`;
-    const $ = cheerio.load(completeHtml);
-    const rows = $('tr');
-
-    logger.info(`📄 e-GP search results fetched successfully. Processing ${rows.length} notices...`);
-
+    let pageNo = 1;
+    let keepScraping = true;
     let scrapedCount = 0;
 
-    for (let i = 0; i < rows.length; i++) {
-      try {
-        const tds = $(rows[i]).find('td');
-        if (tds.length < 6) continue;
+    while (keepScraping) {
+      logger.info(`📄 Fetching e-GP search results: Page ${pageNo}...`);
+      
+      const postData = new URLSearchParams({
+        funName: 'AllTenders',
+        keyword: '',
+        pageNo: String(pageNo),
+        size: '25',
+        homeWSearch: 'homeWSearch',
+        approve: 'false',
+        h: 't'
+      });
 
-        const cell1 = $(tds[1]).text().trim();
-        const cell1Parts = cell1.split(',');
-        if (cell1Parts.length < 3) continue;
-
-        const tenderId = `T-${cell1Parts[0].trim()}`;
-        const refNo = cell1Parts[1].trim();
-        const status = cell1Parts[2].trim();
-
-        const cell2 = $(tds[2]).text().trim();
-        const commaIdx = cell2.indexOf(',');
-        if (commaIdx === -1) continue;
-        const nature = cell2.substring(0, commaIdx).trim();
-        const title = cell2.substring(commaIdx + 1).trim();
-
-        const organization = $(tds[3]).text().trim();
-
-        const cell4 = $(tds[4]).text().trim();
-        const methodPart = cell4.split(',')[1] || 'e-GP';
-        const method = methodPart.trim();
-
-        const cell5 = $(tds[5]).text().trim();
-        const cell5Parts = cell5.split(',');
-        const pubDateStr = cell5Parts[0] || '';
-        const closeDateStr = cell5Parts[1] || '';
-
-        const publishedDate = parseEGPDate(pubDateStr);
-        const closingDate = parseEGPDate(closeDateStr);
-
-        const categoryMap = matchCategory(title, nature);
-        const districtMap = matchDistrict(organization + ' ' + title);
-        const budget = generateBudget(cell1Parts[0].trim());
-        const securityAmount = generateSecurityAmount(budget);
-
-        const description = `Bidding is open for ${title} under ${method} procurement system. Procurement is managed by ${organization} and is open to eligible bidders under NCT rules. Reference No: ${refNo}.`;
-
-        const tender = {
-          id: tenderId,
-          title,
-          description,
-          category: categoryMap.category,
-          categoryId: categoryMap.categoryId,
-          organization,
-          organizationId: getDeterministicOrgId(organization),
-          district: districtMap.district,
-          districtId: districtMap.districtId,
-          budget,
-          method,
-          publishedDate,
-          closingDate,
-          status,
-          securityAmount
-        };
-
-        const updateRes = await collection.updateOne(
-          { id: tender.id },
-          { $set: tender },
-          { upsert: true }
-        );
-
-        const isNewTender = updateRes.upsertedCount > 0 || updateRes.matchedCount === 0;
-        if (isNewTender) {
-          checkAndSendAlerts(tender).catch(err => 
-            logger.error(`🔥 Failed to process alert subscriptions for tender ${tender.id}:`, err)
-          );
+      const response = await axios.post(url, postData.toString(), {
+        timeout: 15000,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Referer': 'https://www.eprocure.gov.bd/resources/common/StdTenderSearch.jsp?h=t',
+          'Origin': 'https://www.eprocure.gov.bd'
         }
+      });
 
-        scrapedCount++;
-      } catch (error) {
-        const err = /** @type {any} */ (error);
-        logger.error(`Error parsing row ${i}:`, err.message);
+      const html = response.data;
+      if (!html || html.trim().length === 0) {
+        logger.info(`🛑 Received empty response on page ${pageNo}. Stopping.`);
+        break;
+      }
+
+      const completeHtml = `<table>${html}</table>`;
+      const $ = cheerio.load(completeHtml);
+      const rows = $('tr');
+
+      if (rows.length === 0) {
+        logger.info(`🛑 No rows found on page ${pageNo}. Stopping.`);
+        break;
+      }
+
+      logger.info(`  Parsing ${rows.length} rows from page ${pageNo}...`);
+
+      let pageHasTargetDate = false;
+      let oldestDateOnPage = '';
+
+      for (let i = 0; i < rows.length; i++) {
+        try {
+          const tds = $(rows[i]).find('td');
+          if (tds.length < 6) continue;
+
+          const cell1 = $(tds[1]).text().trim();
+          const cell1Parts = cell1.split(',').map(p => p.trim());
+          if (cell1Parts.length === 0 || !cell1Parts[0]) continue;
+
+          const rawId = cell1Parts[0];
+          const tenderId = `T-${rawId}`;
+          
+          let refNo = 'N/A';
+          let status = 'Live';
+          
+          if (cell1Parts.length >= 3) {
+            refNo = cell1Parts[1];
+            status = cell1Parts[2];
+          } else if (cell1Parts.length === 2) {
+            const val = cell1Parts[1];
+            if (['live', 'corrigendum', 'closed', 'cancelled', 'active', 'evaluation'].includes(val.toLowerCase())) {
+              status = val;
+            } else {
+              refNo = val;
+            }
+          }
+
+          const cell2 = $(tds[2]).text().trim();
+          let nature = 'Works';
+          let title = cell2;
+          
+          const commaIdx = cell2.indexOf(',');
+          if (commaIdx !== -1) {
+            nature = cell2.substring(0, commaIdx).trim();
+            title = cell2.substring(commaIdx + 1).trim();
+          }
+
+          const organization = $(tds[3]).text().trim();
+
+          const cell4 = $(tds[4]).text().trim();
+          const methodPart = cell4.split(',')[1] || 'e-GP';
+          const method = methodPart.trim();
+
+          const cell5 = $(tds[5]).text().trim();
+          const cell5Parts = cell5.split(',');
+          const pubDateStr = cell5Parts[0] || '';
+          const closeDateStr = cell5Parts[1] || '';
+
+          const publishedDate = parseEGPDate(pubDateStr);
+          const closingDate = parseEGPDate(closeDateStr);
+
+          if (publishedDate) {
+            oldestDateOnPage = publishedDate;
+          }
+
+          // Check if tender was published on today or yesterday
+          if (publishedDate === todayStr || publishedDate === yesterdayStr) {
+            pageHasTargetDate = true;
+            
+            const categoryMap = matchCategory(title, nature);
+            const districtMap = matchDistrict(organization + ' ' + title);
+            const budget = generateBudget(rawId);
+            const securityAmount = generateSecurityAmount(budget);
+
+            const description = `Bidding is open for ${title} under ${method} procurement system. Procurement is managed by ${organization} and is open to eligible bidders under NCT rules. Reference No: ${refNo}.`;
+
+            const tender = {
+              id: tenderId,
+              title,
+              description,
+              category: categoryMap.category,
+              categoryId: categoryMap.categoryId,
+              organization,
+              organizationId: getDeterministicOrgId(organization),
+              district: districtMap.district,
+              districtId: districtMap.districtId,
+              budget,
+              method,
+              publishedDate,
+              closingDate,
+              status,
+              securityAmount
+            };
+
+            const updateRes = await collection.updateOne(
+              { id: tender.id },
+              { $set: tender },
+              { upsert: true }
+            );
+
+            const isNewTender = updateRes.upsertedCount > 0 || updateRes.matchedCount === 0;
+            if (isNewTender) {
+              checkAndSendAlerts(tender).catch(err => 
+                logger.error(`🔥 Failed to process alert subscriptions for tender ${tender.id}:`, err)
+              );
+            }
+
+            scrapedCount++;
+          } else if (publishedDate && publishedDate < yesterdayStr) {
+            // Found a tender older than yesterday. Since listings are sorted descending, we are done.
+            logger.info(`⏱️ Reached older tender ${tenderId} published on ${publishedDate}. Stopping pagination.`);
+            keepScraping = false;
+          }
+        } catch (error) {
+          const err = /** @type {any} */ (error);
+          logger.error(`Error parsing row ${i} on page ${pageNo}:`, err.message);
+        }
+      }
+
+      // If the entire page has dates older than yesterday, we can stop
+      if (!pageHasTargetDate && oldestDateOnPage && oldestDateOnPage < yesterdayStr) {
+        logger.info(`⏱️ Entire page ${pageNo} has dates older than ${yesterdayStr}. Stopping.`);
+        keepScraping = false;
+      }
+
+      if (keepScraping) {
+        pageNo++;
+        logger.info(`⏳ Waiting 1000ms before requesting next page to prevent e-GP rate limits...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
-    logger.info(`✨ Web scraping successful! Synced ${scrapedCount} new active notices into the system.`);
+    logger.info(`✨ Web scraping completed successfully! Synced ${scrapedCount} notices into the database.`);
     return { success: true, count: scrapedCount };
 
   } catch (error) {
@@ -678,6 +747,7 @@ export async function runAPPScraper() {
 
     logger.info(`📄 APP main list parsed successfully. Collecting all package detail paths across the first 10 PE offices...`);
 
+    /** @type {any[]} */
     const detailPathsToScrape = [];
     let validPeOfficesProcessed = 0;
     const maxPeOfficesToProcess = 10;
@@ -695,6 +765,7 @@ export async function runAPPScraper() {
 
       // Extract officeId and budget types for this PE office
       let officeId = '';
+      /** @type {any[]} */
       const bTypes = [];
       links.each((i, link) => {
         const href = $list(link).attr('href') || '';
@@ -919,7 +990,7 @@ export async function runAPPScraper() {
             }
           } catch (e) {}
           
-          const existingIdx = existing.findIndex(item => item.appId === appId && item.pkgId === pkgId);
+          const existingIdx = existing.findIndex((/** @type {any} */ item) => item.appId === appId && item.pkgId === pkgId);
           if (existingIdx !== -1) {
             existing[existingIdx] = appPackageDoc;
           } else {
@@ -927,11 +998,13 @@ export async function runAPPScraper() {
           }
           fs.writeFileSync(outPath, JSON.stringify(existing, null, 2), 'utf8');
         } else {
-          await collection.updateOne(
-            { appId, pkgId },
-            { $set: appPackageDoc },
-            { upsert: true }
-          );
+          if (collection) {
+            await collection.updateOne(
+              { appId, pkgId },
+              { $set: appPackageDoc },
+              { upsert: true }
+            );
+          }
           logger.info(`✨ Successfully scraped and stored APP Package ID: ${appId}, Package ID: ${pkgId} in MongoDB!`);
         }
 
@@ -952,3 +1025,279 @@ export async function runAPPScraper() {
   }
 }
 
+/**
+ * Automatically clean up expired tenders by deleting notices whose closing date is earlier than today.
+ * (i.e. deleting them 1 day after their deadline has passed).
+ */
+export async function runCleanup() {
+  logger.info('🧹 Starting automatic tender cleanup job...');
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const collection = getTendersCollection();
+    const result = await collection.deleteMany({ closingDate: { $lt: todayStr } });
+    logger.info(`✅ Cleaned up ${result.deletedCount} expired tenders with deadline before ${todayStr}.`);
+    return { success: true, count: result.deletedCount };
+  } catch (error) {
+    logger.error('🔥 Automatic tender cleanup failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Scrapes eContracts (Notice of Award) from eprocure.gov.bd and saves details in DB & local files
+ * @param {any} options
+ */
+export async function runEContractsScraper(options = {}) {
+  const startPage = options.startPage || 1;
+  const limitPages = options.limitPages || 5;
+  const deepSync = options.deepSync || false;
+
+  logger.info(`🕷️ Starting web scraping routine for Bangladesh e-GP eContracts (NOA)...`);
+  const collection = getEContractsCollection();
+
+  const exportDir = process.env.ECONTRACTS_EXPORT_DIR || 'F:\\OTMBangla-Main\\data\\econtracts';
+  try {
+    fs.mkdirSync(exportDir, { recursive: true });
+    logger.info(`📂 Saving eContracts JSON files under: ${exportDir}`);
+  } catch (error) {
+    const err = /** @type {any} */ (error);
+    logger.error(`🔥 Failed to create export directory: ${err.message}`);
+  }
+
+  try {
+    const listUrl = 'https://www.eprocure.gov.bd/SearchNoaServlet';
+    let pageNo = startPage;
+    let keepScraping = true;
+    let totalSynced = 0;
+
+    while (keepScraping && pageNo < startPage + limitPages) {
+      logger.info(`📄 Fetching eContracts index: Page ${pageNo}...`);
+
+      const postData = new URLSearchParams({
+        keyword: '',
+        pageNo: String(pageNo),
+        size: '100'
+      });
+
+      const response = await axios.post(listUrl, postData.toString(), {
+        timeout: 15000,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Referer': 'https://www.eprocure.gov.bd/resources/common/SearchNOA.jsp',
+          'Origin': 'https://www.eprocure.gov.bd'
+        }
+      });
+
+      const html = response.data;
+      if (!html || html.trim().length === 0 || html.includes('No Records Found')) {
+        logger.info(`🛑 Received empty response or no records on page ${pageNo}. Stopping.`);
+        break;
+      }
+
+      const completeHtml = `<table>${html}</table>`;
+      const $ = cheerio.load(completeHtml);
+      const rows = $('tr');
+
+      if (rows.length === 0) {
+        logger.info(`🛑 No rows found on page ${pageNo}. Stopping.`);
+        break;
+      }
+
+      logger.info(`  Parsing ${rows.length} rows from index page ${pageNo}...`);
+      /** @type {any[]} */
+      const pageContracts = [];
+      let pageNewOrUpdatedCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        try {
+          const tds = $(rows[i]).find('td');
+          if (tds.length < 8) continue;
+
+          const sNo = $(tds[0]).text().trim();
+          const ministry = $(tds[1]).text().trim().replace(/\s+/g, ' ');
+          
+          const col2 = $(tds[2]);
+          const linkEl = col2.find('a');
+          const href = linkEl.attr('href') || '';
+          
+          const linkText = linkEl.text().trim();
+          const linkParts = linkText.split(',').map(s => s.trim());
+          const tenderId = linkParts[0] || '';
+          const refNo = linkParts.slice(1).join(', ') || '';
+
+          const title = col2.find('.more').text().trim().replace(/\s+/g, ' ');
+          
+          let advDate = '';
+          col2.contents().each((index, el) => {
+            if (el.type === 'text') {
+              const text = $(el).text().trim();
+              if (text) {
+                advDate = text;
+              }
+            }
+          });
+
+          const pkgLotIdMatch = href.match(/pkgLotId=(\d+)/);
+          const tenderIdMatch = href.match(/tenderid=(\d+)/);
+          const pkgLotId = pkgLotIdMatch ? pkgLotIdMatch[1] : '';
+          const detailTenderId = tenderIdMatch ? tenderIdMatch[1] : '';
+
+          const peAndMethod = $(tds[3]).text().trim().replace(/\s+/g, ' ');
+          const district = $(tds[4]).text().trim();
+          const signingDate = $(tds[5]).text().trim();
+          const awardTo = $(tds[6]).text().trim();
+          const valueCrore = $(tds[7]).text().trim();
+
+          /** @type {any} */
+          const contractDoc = {
+            pkgLotId,
+            tenderId,
+            ministry,
+            refNo,
+            title,
+            advertisementDate: advDate,
+            peAndMethod,
+            district,
+            signingDate,
+            awardTo,
+            valueCrore,
+            detailLink: href,
+            scrapedAt: new Date()
+          };
+
+          const existingDoc = await collection.findOne({ pkgLotId, tenderId });
+          const needsDetails = !existingDoc || !existingDoc.details || deepSync;
+
+          if (needsDetails) {
+            if (pkgLotId && detailTenderId) {
+              const detailUrl = `https://www.eprocure.gov.bd/resources/common/ViewAwardedContracts.jsp?pkgLotId=${pkgLotId}&tenderid=${detailTenderId}`;
+              logger.info(`    🕷️ Fetching detail page for Tender ID: ${tenderId}...`);
+              
+              try {
+                const detailResponse = await axios.get(detailUrl, {
+                  timeout: 10000,
+                  headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Referer': 'https://www.eprocure.gov.bd/resources/common/SearchNOA.jsp'
+                  }
+                });
+
+                const $detail = cheerio.load(detailResponse.data);
+
+                const agency = findDetailValue($detail, 'Agency');
+                const peName = findDetailValue($detail, 'Procuring Entity Name');
+                const peCode = findDetailValue($detail, 'Procuring Entity Code');
+                const peDistrict = findDetailValue($detail, 'Procuring Entity District');
+                const contractAwardFor = findDetailValue($detail, 'Contract Award for');
+                const budgetAndSource = findDetailValue($detail, 'Budget and Source of Funds');
+                const devPartner = findDetailValue($detail, 'Development Partner');
+                const projectName = findDetailValue($detail, 'Project/Programme Name');
+                const packageNo = findDetailValue($detail, 'Tender/Proposal Package No.');
+                const packageName = findDetailValue($detail, 'Tender/Proposal Package Name');
+                const noaDate = findDetailValue($detail, 'Date of Notification of Award');
+                const contractStart = findDetailValue($detail, 'Proposed Date of Contract Start');
+                const contractCompletion = findDetailValue($detail, 'Proposed Date of Contract Completion');
+                const contractValueTaka = findDetailValue($detail, 'Contract Value (Taka)');
+                const tendererIdVal = findDetailValue($detail, 'Tenderer ID of the Economic Operator');
+                const businessAddress = findDetailValue($detail, 'Business Address of the Economic Operator');
+                const deliveryLocation = findDetailValue($detail, 'Location of Delivery/Works/Consultancy');
+                const authOfficerName = findDetailValue($detail, 'Name of Authorised Officer');
+                const authOfficerDesignation = findDetailValue($detail, 'Designation of Authorised Officer');
+
+                /** @type {any[]} */
+                const shareholders = [];
+                $detail('table.viewShareholdersTable tr, #viewShareholderInfoDiv table tr').each((j, el) => {
+                  const tdsShare = $detail(el).find('td');
+                  if (tdsShare.length >= 3) {
+                    const sNoShare = $detail(tdsShare[0]).text().trim();
+                    const nameShare = $detail(tdsShare[1]).text().trim().replace(/\s+/g, ' ');
+                    const ownershipShare = $detail(tdsShare[2]).text().trim();
+                    const countryShare = tdsShare.length >= 4 ? $detail(tdsShare[3]).text().trim() : '';
+                    if (nameShare && nameShare.toLowerCase() !== 'name') {
+                      shareholders.push({ sNo: sNoShare, name: nameShare, ownership: ownershipShare, country: countryShare });
+                    }
+                  }
+                });
+
+                contractDoc.details = {
+                  agency,
+                  procuringEntityName: peName,
+                  procuringEntityCode: peCode,
+                  procuringEntityDistrict: peDistrict,
+                  contractAwardFor,
+                  budgetAndSourceOfFunds: budgetAndSource,
+                  developmentPartner: devPartner,
+                  projectName,
+                  packageNo,
+                  packageName,
+                  dateOfNotificationOfAward: noaDate,
+                  proposedContractStart: contractStart,
+                  proposedContractCompletion: contractCompletion,
+                  contractValueTaka,
+                  tendererId: tendererIdVal,
+                  businessAddress,
+                  locationOfDelivery: deliveryLocation,
+                  authorisedOfficerName: authOfficerName,
+                  authorisedOfficerDesignation: authOfficerDesignation,
+                  beneficialOwnership: shareholders
+                };
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+              } catch (errorDetail) {
+                const errDetail = /** @type {any} */ (errorDetail);
+                logger.error(`🔥 Failed to parse detail page for Tender ID: ${tenderId}: ${errDetail.message}`);
+              }
+            }
+          } else {
+            contractDoc.details = existingDoc.details;
+          }
+
+          const updateRes = await collection.updateOne(
+            { pkgLotId, tenderId },
+            { $set: contractDoc },
+            { upsert: true }
+          );
+
+          if (updateRes.upsertedCount > 0 || updateRes.modifiedCount > 0 || !existingDoc) {
+            pageNewOrUpdatedCount++;
+          }
+
+          pageContracts.push(contractDoc);
+          totalSynced++;
+        } catch (errorRow) {
+          const errRow = /** @type {any} */ (errorRow);
+          logger.error(`🔥 Failed to parse row in page ${pageNo}: ${errRow.message}`);
+        }
+      }
+
+      if (pageContracts.length > 0) {
+        const filePath = path.join(exportDir, `page_${pageNo}.json`);
+        try {
+          fs.writeFileSync(filePath, JSON.stringify(pageContracts, null, 2), 'utf8');
+        } catch (errorFile) {
+          const errFile = /** @type {any} */ (errorFile);
+          logger.error(`🔥 Failed to save page_${pageNo}.json: ${errFile.message}`);
+        }
+      }
+
+      if (pageNewOrUpdatedCount === 0 && !deepSync) {
+        logger.info(`⏱️ All contracts on page ${pageNo} already exist and are up to date. Stopping incremental crawl.`);
+        break;
+      }
+
+      pageNo++;
+      logger.info(`⏳ Waiting 800ms to respect rate-limiting...`);
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
+
+    logger.info(`🎉 eContracts scrape completed! Synced ${totalSynced} records.`);
+    return { success: true, count: totalSynced };
+  } catch (error) {
+    const err = /** @type {any} */ (error);
+    logger.error('🔥 Failed to scrape eContracts:', err.message);
+    throw err;
+  }
+}
