@@ -86,10 +86,6 @@ export function AppShell({
     }
 
     fetchPreferences();
-
-    // Sync on interval every 12 seconds in case user changes preferences in live modal
-    const interval = setInterval(fetchPreferences, 12000);
-    return () => clearInterval(interval);
   }, [user.email]);
 
   // Refetch immediately when mobile or PC notification panels are opened
