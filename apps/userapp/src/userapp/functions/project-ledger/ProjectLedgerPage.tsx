@@ -3,7 +3,7 @@ import {
   Plus, Users, TrendingUp, DollarSign, AlertCircle, Check, X, Send, 
   Smartphone, Laptop, ChevronRight, Image as ImageIcon, Receipt, 
   Calendar, Building, MapPin, CreditCard, HelpCircle, UserPlus, RefreshCw,
-  Trash2, ArrowUpRight, ArrowDownLeft
+  Trash2, ArrowUpRight, ArrowDownLeft, Copy
 } from 'lucide-react';
 import { getApiUrl } from '../../shared/config';
 
@@ -946,6 +946,19 @@ export function ProjectLedgerPage({
       return;
     }
 
+    // Reset copy state
+    setLinkCopied(false);
+
+    // Show loading modal immediately
+    setInviteStatusModal({
+      show: true,
+      loading: true,
+      title: lang === 'bn' ? 'আমন্ত্রণ পাঠানো হচ্ছে...' : 'Sending Invitation...',
+      message: lang === 'bn' 
+        ? 'দয়া করে অপেক্ষা করুন, ব্যাকএন্ড সার্ভার আমন্ত্রণ প্রক্রিয়া সম্পন্ন করছে।' 
+        : 'Please wait while the server processes the invitation.'
+    });
+
     try {
       const res = await fetch(`${getApiUrl(3001)}/api/auth/invite`, {
         method: 'POST',
@@ -963,27 +976,15 @@ export function ProjectLedgerPage({
 
       const data = await res.json();
       if (res.ok) {
-        if (data.fallbackUrl) {
-          console.log(`[ProjectLedgerPage] Email dispatch failed. Fallback invite link: ${data.fallbackUrl}`);
-          setInviteStatusModal({
-            show: true,
-            success: true,
-            title: lang === 'bn' ? 'আমন্ত্রণ সফল (ইমেইল ত্রুটি)' : 'Invitation Created (Email Failed)',
-            message: lang === 'bn' 
-              ? 'টিম মেম্বার সফলভাবে যুক্ত হয়েছে। তবে ইমেইল পাঠানো যায়নি। দয়া করে নিচের সেট-পাসওয়ার্ড লিঙ্কটি কপি করে তাকে পাঠান:'
-              : 'Team member added successfully, but email dispatch failed. Please copy the set-password link below and send it to them:',
-            link: data.fallbackUrl
-          });
-        } else {
-          setInviteStatusModal({
-            show: true,
-            success: true,
-            title: lang === 'bn' ? 'আমন্ত্রণ সফল' : 'Invitation Successful',
-            message: lang === 'bn' 
-              ? 'টিম মেম্বারের ইমেইলে সফলভাবে আমন্ত্রণপত্র পাঠানো হয়েছে!'
-              : 'The invitation email has been sent successfully to the team member!'
-          });
-        }
+        setInviteStatusModal({
+          show: true,
+          success: true,
+          title: lang === 'bn' ? 'আমন্ত্রণ সফল' : 'Invitation Successful',
+          message: lang === 'bn' 
+            ? 'টিম মেম্বার সফলভাবে যুক্ত হয়েছে। প্রজেক্ট ম্যানেজার (PM) অ্যাকাউন্টটি চালু করতে নিচের লিঙ্কটি কপি করে তাকে পাঠান (যেমন: WhatsApp বা ইমেলের মাধ্যমে):'
+            : 'Team member added successfully. Please copy the set-password link below and send it to the Project Manager (PM) to activate their account:',
+          link: data.fallbackUrl || ''
+        });
         await fetchLedgerData();
         setShowInviteMemberModal(false);
         setNewMemberEmail('');
@@ -3343,7 +3344,7 @@ export function ProjectLedgerPage({
                             setLinkCopied(true);
                             setTimeout(() => setLinkCopied(false), 2000);
                           }}
-                          className="rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-2.5 flex items-center gap-1 transition-all shrink-0 cursor-pointer"
+                          className="rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-2.5 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                         >
                           {linkCopied ? (
                             <>
@@ -3351,12 +3352,15 @@ export function ProjectLedgerPage({
                               <span>{lang === 'bn' ? 'কপি হয়েছে' : 'Copied'}</span>
                             </>
                           ) : (
-                            <span>{lang === 'bn' ? 'কপি করুন' : 'Copy'}</span>
+                            <>
+                              <Copy className="h-3.5 w-3.5" />
+                              <span>{lang === 'bn' ? 'কপি করুন' : 'Copy'}</span>
+                            </>
                           )}
                         </button>
                       </div>
                       <p className="text-[10px] text-neutral-400 font-bold">
-                        {lang === 'bn' ? '💡 বাটনে ক্লিক করে লিঙ্কটি কপি করুন এবং পিএম-কে পাঠান।' : '💡 Click the copy button to copy the setup link.'}
+                        {lang === 'bn' ? '💡 বাটনে ক্লিক করে লিঙ্কটি কপি করুন এবং পিএম-কে পাঠান।' : '💡 Click the copy button to copy the setup link and send it to the PM.'}
                       </p>
                     </div>
                   )}
