@@ -9,6 +9,9 @@ const transporter = nodemailer.createTransport({
     user: 'resend',
     pass: process.env.RESEND_API_KEY || 're_SnVYWtxc_2WAm3SYjiPfJnHEXa6SryxvA',
   },
+  connectionTimeout: 3000, // 3 seconds timeout
+  greetingTimeout: 3000,   // 3 seconds timeout
+  socketTimeout: 5000,     // 5 seconds timeout
 });
 
 /**
