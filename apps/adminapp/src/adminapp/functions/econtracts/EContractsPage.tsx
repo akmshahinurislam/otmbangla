@@ -48,9 +48,9 @@ interface ContractItem {
   details?: ContractDetails;
 }
 
-const isProd = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.PROD : process.env.NODE_ENV === 'production';
-const env = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : (process.env || {});
-const WEBSCRAP_SERVICE_URL = isProd ? (env.VITE_WEBSCRAP_SERVICE_URL || 'https://otmbangla-webscrap-service.onrender.com') : 'http://localhost:3003';
+const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
+const env = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {};
+const WEBSCRAP_SERVICE_URL = isProd ? ((env as any).VITE_WEBSCRAP_SERVICE_URL || 'https://otmbangla-webscrap-service.onrender.com') : 'http://localhost:3003';
 
 export function EContractsPage() {
   const [contracts, setContracts] = useState<ContractItem[]>([]);

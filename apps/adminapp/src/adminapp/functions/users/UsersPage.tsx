@@ -14,9 +14,9 @@ interface UserItem {
   activities: string[];
 }
 
-const isProd = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.PROD : process.env.NODE_ENV === 'production';
-const env = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : (process.env || {});
-const AUTH_SERVICE_URL = isProd ? (env.VITE_AUTH_SERVICE_URL || 'https://otmbangla-auth-service.onrender.com') : 'http://localhost:3001';
+const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
+const env = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {};
+const AUTH_SERVICE_URL = isProd ? ((env as any).VITE_AUTH_SERVICE_URL || 'https://otmbangla-auth-service.onrender.com') : 'http://localhost:3001';
 
 export function UsersPage() {
   const [usersList, setUsersList] = useState<UserItem[]>([]);

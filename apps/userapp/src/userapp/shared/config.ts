@@ -14,7 +14,7 @@ export const setBackendHost = (ip: string) => {
 
 // Map each port to its absolute endpoint URL based on environment
 export const getApiUrl = (port: number): string => {
-  const isProd = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.PROD : process.env.NODE_ENV === 'production';
+  const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
   
   if (isProd) {
     const env = (import.meta as any).env || {};
