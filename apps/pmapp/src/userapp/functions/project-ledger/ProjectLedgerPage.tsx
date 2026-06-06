@@ -556,7 +556,8 @@ export function ProjectLedgerPage({
     success?: boolean;
     title: string;
     message: string;
-    link?: string;
+    email?: string;
+    password?: string;
   } | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
@@ -570,6 +571,7 @@ export function ProjectLedgerPage({
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberRole, setNewMemberRole] = useState<'Project Manager' | 'Site Engineer' | 'Supervisor' | 'Accountant'>('Project Manager');
   const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [newMemberPassword, setNewMemberPassword] = useState('');
   const [newMemberProjectCodes, setNewMemberProjectCodes] = useState<string[]>([]);
 
   const [allocAmount, setAllocAmount] = useState('');
@@ -944,7 +946,7 @@ export function ProjectLedgerPage({
 
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMemberEmail || !newMemberName || newMemberProjectCodes.length === 0 || !newMemberPhone) {
+    if (!newMemberEmail || !newMemberName || newMemberProjectCodes.length === 0 || !newMemberPhone || !newMemberPassword) {
       alert(lang === 'bn' ? 'সবগুলো ঘর পূরণ করুন এবং অন্তত একটি প্রজেক্ট সিলেক্ট করুন।' : 'Please fill in all fields and select at least one project.');
       return;
     }
@@ -971,6 +973,7 @@ export function ProjectLedgerPage({
           email: newMemberEmail.trim().toLowerCase(),
           role: newMemberRole,
           phone: newMemberPhone,
+          password: newMemberPassword,
           projectCodes: newMemberProjectCodes,
           ownerEmail: user?.email || 'admin@otmbangla.com',
           app: 'pmapp'
@@ -984,9 +987,10 @@ export function ProjectLedgerPage({
           success: true,
           title: lang === 'bn' ? 'আমন্ত্রণ সফল' : 'Invitation Successful',
           message: lang === 'bn' 
-            ? 'টিম মেম্বার সফলভাবে যুক্ত হয়েছে। প্রজেক্ট ম্যানেজার (PM) অ্যাকাউন্টটি চালু করতে নিচের লিঙ্কটি কপি করে তাকে পাঠান (যেমন: WhatsApp বা ইমেলের মাধ্যমে):'
-            : 'Team member added successfully. Please copy the set-password link below and send it to the Project Manager (PM) to activate their account:',
-          link: data.fallbackUrl || ''
+            ? 'টিম মেম্বার সফলভাবে যুক্ত হয়েছে। প্রজেক্ট ম্যানেজার (PM) অ্যাকাউন্টটিতে লগইন করতে তাকে নিচের ইমেল ও পাসওয়ার্ডটি পাঠান:'
+            : 'Team member added successfully. Please send the following email and password to the Project Manager (PM) to login to their account:',
+          email: data.email || newMemberEmail.trim().toLowerCase(),
+          password: data.password || newMemberPassword
         });
         await fetchLedgerData();
         setShowInviteMemberModal(false);
@@ -994,6 +998,7 @@ export function ProjectLedgerPage({
         setNewMemberName('');
         setNewMemberRole('Project Manager');
         setNewMemberPhone('');
+        setNewMemberPassword('');
         setNewMemberProjectCodes([]);
       } else {
         let errMsg = data.error || '';
@@ -3080,6 +3085,21 @@ export function ProjectLedgerPage({
                 />
               </div>
 
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-[#62666D] dark:text-neutral-400 uppercase">
+                  {lang === 'bn' ? 'পাসওয়ার্ড' : 'Password'}
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  placeholder="Min 6 characters"
+                  value={newMemberPassword}
+                  onChange={(e) => setNewMemberPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-neutral-950 border border-[#E5E5E6] dark:border-white/10 rounded-xl text-xs text-[#08090A] dark:text-white outline-none focus:border-[#5E6AD2]"
+                />
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -3699,26 +3719,33 @@ export function ProjectLedgerPage({
                     {inviteStatusModal.message}
                   </p>
 
-                  {inviteStatusModal.link && (
+                  {inviteStatusModal.email && inviteStatusModal.password && (
                     <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950/50 border border-neutral-100 dark:border-white/5 p-3.5 space-y-2.5">
                       <span className="block text-[10px] font-extrabold text-[#5E6AD2] dark:text-[#717CFF] uppercase tracking-wider">
-                        {lang === 'bn' ? 'সেট-পাসওয়ার্ড লিঙ্ক (Set Password Link)' : 'Set Password Link'}
+                        {lang === 'bn' ? 'লগইন তথ্য (Login Credentials)' : 'Login Credentials'}
                       </span>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={inviteStatusModal.link}
-                          className="block flex-1 rounded-lg border border-neutral-200 bg-white dark:bg-neutral-950 py-2.5 px-3 text-xs font-bold text-neutral-800 dark:text-neutral-200 outline-none"
-                        />
+                      <div className="space-y-2.5">
+                        <div className="flex justify-between items-center bg-white dark:bg-neutral-900 border border-neutral-200/55 dark:border-white/5 p-2 rounded-xl text-xs">
+                          <span className="text-neutral-400 font-bold uppercase text-[9px]">{lang === 'bn' ? 'ইমেইল:' : 'Email:'}</span>
+                          <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{inviteStatusModal.email}</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-white dark:bg-neutral-900 border border-neutral-200/55 dark:border-white/5 p-2 rounded-xl text-xs">
+                          <span className="text-neutral-400 font-bold uppercase text-[9px]">{lang === 'bn' ? 'পাসওয়ার্ড:' : 'Password:'}</span>
+                          <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{inviteStatusModal.password}</span>
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-neutral-200/50 dark:border-white/5">
                         <button
                           type="button"
                           onClick={() => {
-                            navigator.clipboard.writeText(inviteStatusModal.link || '');
+                            const textToCopy = lang === 'bn'
+                              ? `ইমেইল: ${inviteStatusModal.email}\nপাসওয়ার্ড: ${inviteStatusModal.password}\nঅ্যাপ লিঙ্ক: https://otmbangla-pmapp.vercel.app`
+                              : `Email: ${inviteStatusModal.email}\nPassword: ${inviteStatusModal.password}\nApp Link: https://otmbangla-pmapp.vercel.app`;
+                            navigator.clipboard.writeText(textToCopy);
                             setLinkCopied(true);
                             setTimeout(() => setLinkCopied(false), 2000);
                           }}
-                          className="rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-2.5 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          className="w-full rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2.5 flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer"
                         >
                           {linkCopied ? (
                             <>
@@ -3728,13 +3755,13 @@ export function ProjectLedgerPage({
                           ) : (
                             <>
                               <Copy className="h-3.5 w-3.5" />
-                              <span>{lang === 'bn' ? 'কপি করুন' : 'Copy'}</span>
+                              <span>{lang === 'bn' ? 'লগইন তথ্য কপি করুন' : 'Copy Credentials'}</span>
                             </>
                           )}
                         </button>
                       </div>
                       <p className="text-[10px] text-neutral-400 font-bold">
-                        {lang === 'bn' ? '💡 বাটনে ক্লিক করে লিঙ্কটি কপি করুন এবং পিএম-কে পাঠান।' : '💡 Click the copy button to copy the setup link and send it to the PM.'}
+                        {lang === 'bn' ? '💡 বাটনে ক্লিক করে ইমেইল ও পাসওয়ার্ড কপি করুন এবং পিএম-কে পাঠান।' : '💡 Click to copy the credentials and send them to the PM.'}
                       </p>
                     </div>
                   )}

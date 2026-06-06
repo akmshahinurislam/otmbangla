@@ -545,10 +545,14 @@ app.put('/api/auth/users/:id', async (req, res) => {
 
 // Invite PM Endpoint (by Admin/Owner)
 app.post('/api/auth/invite', async (req, res) => {
-  const { name, email, role, phone, projectCodes, ownerEmail } = req.body;
+  const { name, email, role, phone, password, projectCodes, ownerEmail } = req.body;
 
-  if (!email || !name || !role || !phone) {
-    return res.status(400).json({ error: 'Missing required fields: email, name, role, phone are all required.' });
+  if (!email || !name || !role || !phone || !password) {
+    return res.status(400).json({ error: 'Missing required fields: email, name, role, phone, and password are all required.' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
   }
 
   try {
@@ -572,19 +576,17 @@ app.post('/api/auth/invite', async (req, res) => {
       }
     }
 
-    // Generate secure random invite token
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 24 * 3600000); // 24 hours
+    // Hash Password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user as Pending
+    // Insert user as Active directly with hashed password
     await users.insertOne({
       name,
       email: email.toLowerCase(),
       phone,
       role,
-      status: 'Pending',
-      inviteToken: token,
-      inviteExpires: expires,
+      password: hashedPassword,
+      status: 'Active',
       app: appType,
       createdAt: new Date(),
       failedLoginAttempts: 0,
@@ -599,15 +601,12 @@ app.post('/api/auth/invite', async (req, res) => {
       );
     }
 
-    // Modern Design invitation link (Generated setup URL)
-    const pmAppUrl = process.env.PM_APP_URL || 'https://otmbangla-pmapp.vercel.app';
-    const appUrl = `${pmAppUrl.replace(/\/$/, '')}/set-password?token=${token}`;
-
-    logger.info(`✉️ Invitation link created successfully for ${email}: ${appUrl}`);
+    logger.info(`✨ Team member account provisioned successfully for ${email}`);
     
     res.status(200).json({ 
-      message: 'Team member created successfully. Send the link to the Project Manager.',
-      fallbackUrl: appUrl 
+      message: 'Team member account created successfully.',
+      email: email.toLowerCase(),
+      password: password
     });
 
   } catch (error) {
