@@ -1,0 +1,39 @@
+:root {
+  /* Light mode colors - Premium Indigo theme */
+  --primary-background: #FFFFFF;
+  --secondary-background: #F8FAFC;
+  --tertiary-surface: #F1F5F9;
+  --main-text: #0F172A;
+  --secondary-text: #475569;
+  --muted-text: #94A3B8;
+  --border-subtle: #E2E8F0;
+  --hover-surface: #F1F5F9;
+  --accent-purple: #4F46E5;
+  --accent-purple-hover: #6366F1;
+  --accent-blue: #0EA5E9;
+  --accent-green: #10B981;
+  --accent-pink: #EC4899;
+  --accent-orange: #F97316;
+}
+
+.dark {
+  /* Dark mode colors - Deep Slate premium theme */
+  --primary-background: #090D16;
+  --secondary-background: #0D1527;
+  --tertiary-surface: #1E293B;
+  --main-text: #F8FAFC;
+  --secondary-text: #94A3B8;
+  --muted-text: #64748B;
+  --border-subtle: #1E293B;
+  --hover-surface: #1E293B;
+  --accent-purple: #6366F1;
+  --accent-purple-hover: #818CF8;
+  --accent-blue: #38BDF8;
+  --accent-green: #34D399;
+  --accent-pink: #F472B6;
+  --accent-orange: #FB923C;
+}
+
+.bg-primary { background-color: var(--primary-background); }
+.text-primary { color: var(--main-text); }
+.border-subtle { border-color: var(--border-subtle); }

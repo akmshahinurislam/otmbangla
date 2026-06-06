@@ -1,0 +1,125 @@
+@import "./adminapp/shared/theme.css";
+@import "./adminapp/shared/theme-utilities.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes bellSwing {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(10deg); }
+  40% { transform: rotate(-8deg); }
+  60% { transform: rotate(6deg); }
+  80% { transform: rotate(-4deg); }
+}
+
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(20deg); }
+  30% { transform: rotate(-18deg); }
+  45% { transform: rotate(15deg); }
+  60% { transform: rotate(-12deg); }
+  75% { transform: rotate(8deg); }
+  90% { transform: rotate(-4deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.97); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-bell-swing {
+  transform-origin: top center;
+  animation: bellSwing 4s ease-in-out infinite;
+}
+
+.group:hover .animate-bell-shake {
+  transform-origin: top center;
+  animation: bellShake 0.8s ease-in-out;
+}
+
+/* Scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Mobile viewport layout fixes */
+@media (max-width: 640px) {
+  body, html {
+    font-size: 15px !important;
+  }
+
+  .text-xs {
+    font-size: 0.8125rem !important;
+  }
+  
+  .text-sm {
+    font-size: 0.9375rem !important;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px !important;
+    height: 3.25rem !important;
+    border-radius: 0.75rem !important;
+  }
+  
+  textarea {
+    height: auto !important;
+    min-height: 5.5rem !important;
+  }
+
+  button:not([class*="h-"]):not([class*="py-"]):not([class*="rounded-full"]) {
+    min-height: 3rem !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    border-radius: 0.75rem !important;
+  }
+}
