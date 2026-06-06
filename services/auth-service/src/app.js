@@ -548,10 +548,20 @@ app.post('/api/auth/invite', async (req, res) => {
   try {
     const users = getCollection('users');
     
-    // Check if user already exists
-    const existingUser = await users.findOne({ email: email.toLowerCase() });
+    // Check if user already exists by email or phone
+    const existingUser = await users.findOne({
+      $or: [
+        { email: email.toLowerCase() },
+        { phone }
+      ]
+    });
     if (existingUser) {
-      return res.status(400).json({ error: 'A team member with this email address already exists.' });
+      if (existingUser.email === email.toLowerCase()) {
+        return res.status(400).json({ error: 'A team member with this email address already exists.' });
+      }
+      if (existingUser.phone === phone) {
+        return res.status(400).json({ error: 'A team member with this phone number already exists.' });
+      }
     }
 
     // Generate secure random invite token
